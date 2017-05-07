@@ -11,8 +11,6 @@ var buildCmd = &cobra.Command{
 	Short: "Builds Docker images.",
   Long:  `Builds Docker images.`,
   Run: func(cmd *cobra.Command, args []string) error {
-    client := builder.NewClient()
-
-    return builder.Build(client)
+    return builder.Build()
   },
 }

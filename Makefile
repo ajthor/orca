@@ -30,7 +30,7 @@ dev:
 	docker run $(DOCKER_DEV_OPTS) base/golang:1.8 sh
 
 clean:
-	rm -r $(TEMPDIR)
+	rm -f rootfs.tar.gz
 
 shell: build
 	$(DOCKER_RUN_ORCA) sh
