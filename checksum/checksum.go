@@ -1,15 +1,10 @@
 package checksum
 
 import (
-  "bytes"
-  "fmt"
-  "io"
   "log"
   "os"
 
-  "html/template"
   "io/ioutil"
-  "net/url"
   "path/filepath"
 
   "github.com/spf13/viper"

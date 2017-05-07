@@ -2,7 +2,6 @@ package checksum
 
 import (
   "bytes"
-  "fmt"
   "io"
   "log"
   "os"
@@ -10,7 +9,6 @@ import (
   "crypto/sha256"
   "html/template"
   "net/url"
-  "path/filepath"
 )
 
 func generateFilename(fn string, version string) string {
@@ -18,8 +16,10 @@ func generateFilename(fn string, version string) string {
   t := template.New("")
   t, _ = t.Parse(fn)
 
+  tpl := bytes.Buffer
+
   if err := t.Execute(&tpl, version); err != nil {
-    return err
+    log.Fatal(err)
   }
 
   // Template the filename using the version.
@@ -34,7 +34,7 @@ func generateURI(fn string, uri string) string {
   return u.String()
 }
 
-func generateShasum(fn string) {
+func generateShasum(fn string) string {
   // Open the file specified by the fn argument.
   f, err := os.Open(fn)
   if err != nil {
