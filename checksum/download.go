@@ -1,14 +1,14 @@
 package checksum
 
 import (
+  "io"
   "log"
   "os"
 
-  "io/ioutil"
   "net/http"
 )
 
-func downloadFile(f *fileInfo, fn string) {
+func downloadFile(fn string, uri string) {
   // Create a dummy file to copy the bytes to.
   out, err := os.Create(fn)
   if err != nil {
@@ -18,7 +18,7 @@ func downloadFile(f *fileInfo, fn string) {
   defer out.Close()
 
   // Get the file from the download URL.
-  r, err := http.Get(f.uri)
+  r, err := http.Get(uri)
   if err != nil {
     log.Fatal(err)
   }

@@ -3,38 +3,38 @@ package checksum
 import (
   "bytes"
   "fmt"
+  "io"
   "log"
   "os"
 
   "crypto/sha256"
   "html/template"
-  "io/ioutil"
   "net/url"
   "path/filepath"
 )
 
-func generateFilename(f *fileInfo, version string) {
+func generateFilename(fn string, version string) string {
   // Create the template that we will use.
   t := template.New("")
-  t, _ = t.Parse(f.fn)
+  t, _ = t.Parse(fn)
 
   if err := t.Execute(&tpl, version); err != nil {
     return err
   }
 
   // Template the filename using the version.
-  f.fn = &bytes.Buffer
+  return &bytes.Buffer
 }
 
-func generateURI(f *fileInfo) {
+func generateURI(fn string, uri string) string {
   // Generate the URL for the download.
   u, err := url.Parse(uri)
-  u.Path = path.Join(u.Path, f.fn)
+  u.Path = path.Join(u.Path, fn)
 
-  f.uri = u.String()
+  return u.String()
 }
 
-func generateShasum(f *fileInfo) {
+func generateShasum(fn string) {
   // Open the file specified by the fn argument.
   f, err := os.Open(fn)
   if err != nil {
@@ -51,7 +51,7 @@ func generateShasum(f *fileInfo) {
 	}
 
   // Output the checksum to the file.
-  return h.Sum(nil)
+  return h.Sum(nil) + "  " + fn
 }
 
 func generateShasumFile(fn string, hashes []string) {
