@@ -65,7 +65,7 @@ RUN git clone https://github.com/gorobot-library/orca .
 RUN glide install
 
 # Build the binary.
-RUN go build
+RUN go build github.com/gorobot-library/orca/cmd/orca
 
 # ----------------------------------------
 # Orca
