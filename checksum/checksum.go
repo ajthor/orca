@@ -3,10 +3,12 @@ package checksum
 import (
   "bytes"
   "fmt"
+  "io"
   "log"
   "os"
 
   "html/template"
+  "io/ioutil"
   "net/url"
   "path/filepath"
 
@@ -44,9 +46,9 @@ func Generate() {
   defer os.RemoveAll(dir)
 
   // Get variables from the config file.
-  download_filename := viper.Get("download.filename")
-  download_url := viper.Get("download.url")
-  checksum_versions := viper.Get("checksum.versions")
+  download_filename := viper.GetString("download.filename")
+  download_url := viper.GetString("download.url")
+  checksum_versions := viper.GetStringSlice("checksum.versions")
 
   f := newFileInfo(download_filename, download_url)
 
