@@ -68,11 +68,13 @@ RUN glide install
 RUN go build
 
 # ----------------------------------------
-# Traefik
+# Orca
 #
-# Creates the traefik image using the binary from the builder.
+# Creates the orca image using the binary from the builder.
 FROM scratch
 
-COPY --from=builder dist/orca /
+# Copy the binary.
+COPY --from=builder /go/bin/orca /bin/orca
 
+# Run the binary.
 ENTRYPOINT ["/orca"]
