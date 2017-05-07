@@ -22,3 +22,6 @@ _testmain.go
 *.exe
 *.test
 *.prof
+
+# Alpine rootfs.tar.gz
+rootfs.tar.gz
