@@ -5,6 +5,7 @@ import (
   "io"
   "log"
   "os"
+  "path"
 
   "crypto/sha256"
   "html/template"
@@ -16,25 +17,29 @@ func generateFilename(fn string, version string) string {
   t := template.New("")
   t, _ = t.Parse(fn)
 
-  tpl := bytes.Buffer
+  var tpl bytes.Buffer
 
   if err := t.Execute(&tpl, version); err != nil {
     log.Fatal(err)
   }
 
   // Template the filename using the version.
-  return &bytes.Buffer
+  return tpl.String()
 }
 
 func generateURI(fn string, uri string) string {
   // Generate the URL for the download.
   u, err := url.Parse(uri)
+  if err != nil {
+		log.Fatal(err)
+	}
+  
   u.Path = path.Join(u.Path, fn)
 
   return u.String()
 }
 
-func generateShasum(fn string) string {
+func generateShasum(fn string) []byte {
   // Open the file specified by the fn argument.
   f, err := os.Open(fn)
   if err != nil {
@@ -51,10 +56,10 @@ func generateShasum(fn string) string {
 	}
 
   // Output the checksum to the file.
-  return h.Sum(nil) + "  " + fn
+  return append(h.Sum(nil), ("  " + fn)...)
 }
 
-func generateShasumFile(fn string, hashes []string) {
+func generateShasumFile(fn string, hashes [][]byte) {
   f, err := os.Create(fn)
   if err != nil {
     log.Fatal(err)
@@ -63,7 +68,8 @@ func generateShasumFile(fn string, hashes []string) {
   defer f.Close()
 
   for _, h := range hashes {
-    if _, err := io.Copy(f, h); err != nil {
+    r := bytes.NewReader(h)
+    if _, err := io.Copy(f, r); err != nil {
       log.Fatal(err)
     }
   }

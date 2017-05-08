@@ -1,6 +1,7 @@
 package checksum
 
 import (
+  "bytes"
   "log"
   "os"
 
@@ -48,7 +49,7 @@ func Generate() {
   f := newFileInfo(download_filename, download_url)
 
   // Create a slice to hold the hashes output from the generateShasum function.
-  hashes := make([]string, len(checksum_versions))
+  hashes := make([][]byte, len(checksum_versions))
 
   // Iterate over the checksum_versions and generate and hashes for each file.
   for i, v := range checksum_versions {
@@ -59,7 +60,7 @@ func Generate() {
 
     downloadFile(f.fn, f.uri)
     // The hash line is a combination of the hash, two spaces, and the filename.
-    hashes[i] = generateShasum(f.fn)
+    hashes[i] = generateShasum(fn)
   }
 
   // Generate the shasums file.

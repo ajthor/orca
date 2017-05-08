@@ -2,7 +2,9 @@ package builder
 
 import (
   "context"
+  "io/ioutil"
   "fmt"
+  "os"
 
 	"github.com/moby/moby/api/types"
 	"github.com/moby/moby/client"
@@ -18,7 +20,8 @@ func newClient() *client.Client {
 }
 
 func Build()  {
-  client := newClient()
+  // client := newClient()
+
   // client.ImageBuild(context.Background(), , types.ImageBuildOptions{})
 
   // func (cli *Client) ImageBuild(ctx context.Context, buildContext io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error)

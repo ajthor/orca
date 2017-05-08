@@ -54,10 +54,7 @@ func readConfig() {
 
 func main() {
   // Read the configuration file.
-  if err := readConfig(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-  }
+  readConfig()
 
   cmd := newCLICommand()
   // Run the command.

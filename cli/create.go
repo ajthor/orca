@@ -10,7 +10,7 @@ var createCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Generates initial Docker files.",
   Long:  `Generates initial Docker files.`,
-  Run: func(cmd *cobra.Command, args []string) error {
-    return create.Create()
+  Run: func(cmd *cobra.Command, args []string) {
+    create.Create()
   },
 }
