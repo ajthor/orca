@@ -1,0 +1,14 @@
+FROM golang:1.8-alpine
+
+WORKDIR /go/src/github.com/gorobot-library/orca
+
+RUN apk add --no-cache \
+    git \
+    glide \
+    make
+
+RUN mkdir -p "$HOME/.orca"
+
+COPY orca.example.toml $HOME/.orca/orca.toml
+
+CMD [ "sh" ]

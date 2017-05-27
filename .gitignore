@@ -25,3 +25,6 @@ _testmain.go
 
 # Alpine rootfs.tar.gz
 rootfs.tar.gz
+
+# Vendor Files
+/vendor

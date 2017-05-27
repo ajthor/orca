@@ -1,6 +1,7 @@
 .PHONY: all
 
 ORCA_IMAGE := "gorobot/orca"
+ORCA_DEV_IMAGE := gorobot/orca:dev
 
 ALPINE_ARCH := armhf
 ALPINE_DIST := v3.5
@@ -9,10 +10,10 @@ ALPINE_MIRROR := http://nl.alpinelinux.org/alpine
 ALPINE_FILENAME := alpine-minirootfs-$(ALPINE_VERSION)-$(ALPINE_ARCH).tar.gz
 ALPINE_DOWNLOAD_URL := $(ALPINE_MIRROR)/$(ALPINE_DIST)/releases/$(ALPINE_ARCH)/$(ALPINE_FILENAME)
 
-DOCKER_DEV_OPTS := --rm -it -v "$PWD:/go/src/github.com/gorobot-library/orca"
+DOCKER_DEV_OPTS := --rm -it -v "$$PWD:/go/src/github.com/gorobot-library/orca" --name dev
 
-DOCKER_RUN_ORCA_OPTS := --rm -it -v "/var/run/docker.sock:/var/run/docker.sock"
-DOCKER_RUN_ORCA := docker run $(DOCKER_RUN_ORCA_OPTS) $(ORCA_IMAGE)
+DOCKER_RUN_OPTS := --rm -it -v "/var/run/docker.sock:/var/run/docker.sock"
+DOCKER_RUN := docker run $(DOCKER_RUN_ORCA_OPTS) $(ORCA_IMAGE)
 
 default: build
 
@@ -26,11 +27,14 @@ alpine:
 build: alpine
 	docker build -t $(ORCA_IMAGE) .
 
-dev:
-	docker run $(DOCKER_DEV_OPTS) base/golang:1.8 sh
+build-dev:
+	docker build -t $(ORCA_DEV_IMAGE) -f Dockerfile.dev .
+
+dev: build-dev
+	docker run $(DOCKER_DEV_OPTS) $(ORCA_DEV_IMAGE) sh
 
 clean:
 	rm -f rootfs.tar.gz
 
 shell: build
-	$(DOCKER_RUN_ORCA) sh
+	$(DOCKER_RUN) sh
