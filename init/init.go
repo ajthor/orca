@@ -2,6 +2,6 @@ package create
 
 import ()
 
-func Create() {
+func Initialize() {
 
 }

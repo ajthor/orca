@@ -20,5 +20,5 @@ func addRootCommands(rootCmd *cobra.Command)  {
   // in the respective files.
   rootCmd.AddCommand(buildCmd)
   rootCmd.AddCommand(checksumCmd)
-  rootCmd.AddCommand(createCmd)
+  // rootCmd.AddCommand(initCmd)
 }

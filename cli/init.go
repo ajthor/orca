@@ -1,16 +1,16 @@
 package cli
 
 import (
-  "github.com/gorobot-library/orca/create"
+  create "github.com/gorobot-library/orca/init"
 
   "github.com/spf13/cobra"
 )
 
-var createCmd = &cobra.Command{
-	Use:   "create",
+var initCmd = &cobra.Command{
+	Use:   "init",
 	Short: "Generates initial Docker files.",
   Long:  `Generates initial Docker files.`,
   Run: func(cmd *cobra.Command, args []string) {
-    create.Create()
+    create.Initialize()
   },
 }

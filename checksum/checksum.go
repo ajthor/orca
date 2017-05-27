@@ -1,7 +1,6 @@
 package checksum
 
 import (
-  "bytes"
   "log"
   "os"
 
@@ -21,49 +20,53 @@ func createTempdir() string {
   return dir
 }
 
-type fileInfo struct {
-  fn        string
-  uri       string
-  shasum    string
-}
+func GenerateChecksums(r *viper.Viper, versions []string) error {
 
-func newFileInfo(download_filename string, download_url string) *fileInfo {
-  f := &fileInfo{
-    fn:     download_filename,
-    uri:    download_url,
-  }
-  return f
-}
-
-func Generate() {
   dir := createTempdir()
 
   // Remove the temporary directory when we are finished.
   defer os.RemoveAll(dir)
 
-  // Get variables from the config file.
-  download_filename := viper.GetString("download.filename")
-  download_url := viper.GetString("download.url")
-  checksum_versions := viper.GetStringSlice("checksum.versions")
-
-  f := newFileInfo(download_filename, download_url)
-
-  // Create a slice to hold the hashes output from the generateShasum function.
-  hashes := make([][]byte, len(checksum_versions))
-
-  // Iterate over the checksum_versions and generate and hashes for each file.
-  for i, v := range checksum_versions {
-    f.fn = generateFilename(f.fn, v)
-    f.uri = generateURI(f.fn, f.uri)
-
-    fn := filepath.Join(dir, f.fn)
-
-    downloadFile(f.fn, f.uri)
-    // The hash line is a combination of the hash, two spaces, and the filename.
-    hashes[i] = generateShasum(fn)
+  cwd, err := os.Getwd()
+  if err != nil {
+      log.Fatal(err)
   }
 
-  // Generate the shasums file.
-  generateShasumFile(filepath.Join(dir, "SHASUMS256.txt"), hashes)
+  shasumFile := filepath.Join(cwd, "SHASUMS256.txt")
 
+  if err := removeShasumFile(shasumFile); err != nil {
+    log.Fatal(err)
+  }
+
+  // Create a slice to hold the hashes output from the generateShasum function.
+  hashes := make([]string, len(versions))
+
+  // Iterate over the versions and generate and hashes for each file.
+  for i, ver := range versions {
+    fn := getFilename(r, ver)
+    uri := getURI(r, fn)
+
+    dlFile := filepath.Join(dir, fn)
+
+    err := downloadFile(uri, dlFile)
+    if err != nil {
+      log.Fatal(err)
+    }
+
+    defer os.Remove(dlFile)
+
+    // Generate the shasums.
+    hashes[i] = generateShasum(dlFile)
+    if err != nil {
+      log.Fatal(err)
+    }
+  }
+
+  // Write the hashes to the shasum file.
+  err = createShasumFile(shasumFile, hashes)
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  return nil
 }

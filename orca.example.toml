@@ -1,23 +1,30 @@
 # Sample Orca configuration file.
 
 # Go templating will be used on any lines that include it.
+
 name = "sample"
 
-[download]
-# Files will be downloaded using the download url + filename combination.
+[remote]
+# Files will be downloaded using the remote mirror + file combination.
+mirror = "http://github.com/download/"
 # Be sure to include a {{version}} template item in the url or filename to
 # substitute the version number in the final url.
-url = "http://github.com/download/"
-filename = "sample-{{version}}.tar.gz"
+file = "sample-{{version}}.tar.gz"
 
 [build]
-base_image = "scratch"
+baseImage = "scratch"
 # The version specified here is the one that will be built in the current
 # image. The version specified here must also be in the "versions" list below
 # for shasum verification of the download.
 version = "0.6.7"
+includeFiles = [
+  "{{name}}/docker-entrypoint.sh",
+  "{{name}}/script.sh",
+  ]
 
 [checksum]
 # Versions specified will be downloaded into a temporary directory and sha256
 # checksums will be generated for each file.
-versions = [ "0.1.2", "0.2.3", "0.4.5", "0.6.7" ]
+versions = [
+  "0.1.2", "0.2.3", "0.4.5", "0.6.7"
+  ]

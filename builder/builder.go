@@ -1,12 +1,14 @@
 package builder
 
-import (
-  "context"
-  "io/ioutil"
-  "fmt"
-  "os"
+// "context"
+// "io/ioutil"
+// "os"
+//
+// "github.com/moby/moby/api/types"
 
-	"github.com/moby/moby/api/types"
+import (
+  "fmt"
+
 	"github.com/moby/moby/client"
 )
 
@@ -20,6 +22,7 @@ func newClient() *client.Client {
 }
 
 func Build()  {
+  fmt.Println("Building image...")
   // client := newClient()
 
   // client.ImageBuild(context.Background(), , types.ImageBuildOptions{})
