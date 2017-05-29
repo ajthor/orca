@@ -1,11 +1,12 @@
 package checksum
 
 import (
-  "log"
   "os"
 
   "io/ioutil"
   "path/filepath"
+
+  log "github.com/gorobot-library/orca/logger"
 
   "github.com/spf13/viper"
 )
@@ -16,11 +17,14 @@ func createTempdir() string {
 	if err != nil {
 		log.Fatal(err)
 	}
+  
+  log.Debugf("Created temp directory: %s", dir)
 
   return dir
 }
 
-func GenerateChecksums(r *viper.Viper, versions []string) error {
+func GenerateChecksums(cfg *viper.Viper, versions []string) error {
+  log.Info("Generating shasums...")
 
   dir := createTempdir()
 
@@ -33,6 +37,7 @@ func GenerateChecksums(r *viper.Viper, versions []string) error {
   }
 
   shasumFile := filepath.Join(cwd, "SHASUMS256.txt")
+  log.Debugf("Shasum file path: %s", shasumFile)
 
   if err := removeShasumFile(shasumFile); err != nil {
     log.Fatal(err)
@@ -43,28 +48,33 @@ func GenerateChecksums(r *viper.Viper, versions []string) error {
 
   // Iterate over the versions and generate and hashes for each file.
   for i, ver := range versions {
-    fn := getFilename(r, ver)
-    uri := getURI(r, fn)
+    fn := getFilename(cfg, ver)
+    log.Debugf("Generated filename: %s", fn)
+    uri := getURI(cfg, fn)
+    log.Debugf("Generated uri: %s", uri)
 
     dlFile := filepath.Join(dir, fn)
 
+    log.Infof("Downloading %s...", dlFile)
     err := downloadFile(uri, dlFile)
-    if err != nil {
+    if ok := log.Done(err); !ok {
       log.Fatal(err)
     }
 
     defer os.Remove(dlFile)
 
     // Generate the shasums.
+    log.Info("Generating shasum...")
     hashes[i] = generateShasum(dlFile)
-    if err != nil {
+    if ok := log.Done(err); !ok {
       log.Fatal(err)
     }
   }
 
   // Write the hashes to the shasum file.
+  log.Info("Generating shasum file...")
   err = createShasumFile(shasumFile, hashes)
-  if err != nil {
+  if ok := log.Done(err); !ok {
     log.Fatal(err)
   }
 

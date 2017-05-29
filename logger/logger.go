@@ -3,6 +3,7 @@ package logger
 import (
   "fmt"
   "os"
+  "strings"
   "sync"
 
   . "github.com/logrusorgru/aurora"
@@ -53,9 +54,17 @@ func (l *Logger) SetLogLevel(lvl Level) {
 func (l *Logger) format(msg *Message) string {
   spmsg := msg.String()
 
+  // Trim any trailing newlines. We want the log to be clean and the newline is
+  // added below.
+  spmsg = strings.TrimRight(spmsg, "\n")
+  // Append a single newline to the end of the formatted string.
+  if last := len(spmsg) - 1; spmsg[last] != 10 && spmsg[last] != 109 {
+    spmsg = spmsg + "\n"
+  }
+
   switch msg.lvl {
   case FATAL:
-    return fmt.Sprintf("%s%s", Magenta("[FATAL]  "), spmsg)
+    return fmt.Sprintf("%s%s", Red("[FATAL]  "), spmsg)
   case ERROR:
     return fmt.Sprintf("%s%s", Red("[ERROR]  "), spmsg)
   case WARNING:

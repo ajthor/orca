@@ -1,42 +1,35 @@
 package builder
 
-// "context"
 // "io/ioutil"
 // "os"
 //
-// "github.com/moby/moby/api/types"
+// "context"
+// "github.com/docker/docker/api/types"
 
 import (
-  "fmt"
+  log "github.com/gorobot-library/orca/logger"
 
-	"github.com/moby/moby/client"
+  "github.com/docker/docker/client"
+
+  "github.com/spf13/viper"
 )
 
-func newClient() *client.Client {
-  client, err := client.NewEnvClient()
+func Build(cfg *viper.Viper) (err error) {
+  log.Info("Building image...\n")
+
+  c, err := client.NewEnvClient()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
-  return client
-}
+  imageTags, err := getImages(c)
 
-func Build()  {
-  fmt.Println("Building image...")
-  // client := newClient()
+  for _, tag := range imageTags {
+    log.Debugf("%s\n", tag)
+  }
 
+  return
   // client.ImageBuild(context.Background(), , types.ImageBuildOptions{})
 
   // func (cli *Client) ImageBuild(ctx context.Context, buildContext io.Reader, options types.ImageBuildOptions) (types.ImageBuildResponse, error)
 }
-
-// func getImages(client *client.Client)  {
-//   containers, err := client.ContainerList(context.Background(), types.ContainerListOptions{})
-//   if err != nil {
-//   	panic(err)
-//   }
-//
-//   for _, container := range containers {
-//   	fmt.Printf("%s %s\n", container.ID[:10], container.Image)
-//   }
-// }

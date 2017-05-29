@@ -3,13 +3,14 @@ package checksum
 import (
   "bytes"
   "io"
-  "log"
   "os"
   "path"
 
   "net/http"
   "net/url"
   "html/template"
+
+  log "github.com/gorobot-library/orca/logger"
 
   "github.com/spf13/viper"
 )
@@ -40,8 +41,8 @@ func downloadFile(uri string, dest string) error {
   return nil
 }
 
-func getFilename(r *viper.Viper, version string) string {
-  file := r.GetString("file")
+func getFilename(cfg *viper.Viper, version string) string {
+  file := cfg.GetString("file")
 
   // Create the template that we will use.
   t := template.New("")
@@ -61,8 +62,8 @@ func getFilename(r *viper.Viper, version string) string {
 
 }
 
-func getURI(r *viper.Viper, fn string) string {
-  mirror := r.GetString("mirror")
+func getURI(cfg *viper.Viper, fn string) string {
+  mirror := cfg.GetString("mirror")
 
   // Generate the URL for the download.
   u, err := url.Parse(mirror)

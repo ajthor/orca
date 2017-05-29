@@ -1,10 +1,9 @@
 package cli
 
 import (
-  "log"
-  
   "github.com/gorobot-library/orca/checksum"
   "github.com/gorobot-library/orca/config"
+  log "github.com/gorobot-library/orca/logger"
 
   "github.com/spf13/cobra"
 )
@@ -22,7 +21,7 @@ var checksumCmd = &cobra.Command{
 
     req := []string{
       "remote",
-      "remote.uri",
+      "remote.mirror",
       "remote.file",
       "checksum",
       "checksum.versions",
@@ -33,9 +32,9 @@ var checksumCmd = &cobra.Command{
     }
 
     versions := cfg.GetStringSlice("checksum.versions")
-    remote := cfg.Sub("remote")
+    remoteCfg := cfg.Sub("remote")
 
-    checksum.GenerateChecksums(remote, versions)
+    checksum.GenerateChecksums(remoteCfg, versions)
 
   },
 }

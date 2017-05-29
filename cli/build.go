@@ -1,10 +1,9 @@
 package cli
 
 import (
-  "log"
-  
   "github.com/gorobot-library/orca/builder"
   "github.com/gorobot-library/orca/config"
+  log "github.com/gorobot-library/orca/logger"
 
   "github.com/spf13/cobra"
 )
@@ -16,9 +15,6 @@ var buildCmd = &cobra.Command{
   Run: func(cmd *cobra.Command, args []string) {
     // Read the configuration file.
     cfg := config.NewConfig("orca")
-    // if err := config.ReadConfig(cfg); err != nil {
-    //   log.Fatal(err)
-    // }
 
     req := []string{
       "build",
@@ -29,6 +25,18 @@ var buildCmd = &cobra.Command{
       log.Fatal(err)
     }
 
-    builder.Build()
+    buildCfg := cfg.Sub("build")
+
+    isValid, err := builder.Validate(buildCfg)
+    if err != nil {
+      log.Fatal(err)
+    } else if !isValid {
+      log.Fatal("Cannot build image. Invalid configuration.\n")
+    }
+
+    // err = builder.Build(buildCfg)
+    // if err != nil {
+    //   log.Std.Fatal(err)
+    // }
   },
 }

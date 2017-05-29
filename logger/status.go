@@ -19,16 +19,6 @@ import (
 //   msg *Message
 // }
 
-func (l *Logger) Status(args ...interface{}) (msg *Message) {
-  msg = l.log(INFO, nil, args...)
-  return
-}
-
-func (l *Logger) Statusf(format string, args ...interface{}) (msg *Message) {
-  msg = l.log(INFO, &format, args...)
-  return
-}
-
 // The Done function is used to update the status of the previous statement by
 // appending either "err" or "ok" to the end and changing the 'logLevel' label
 // if the result is 'falsey'. Changing the label does not call the panic or
@@ -55,9 +45,7 @@ func (l *Logger) Done(args ...interface{}) (ok bool) {
     case error:
       ok = false
     case bool:
-      if !t {
-        ok = false
-      }
+      if !t { ok = false }
     default:
       // fmt.Printf("type %T\n", t)
       // fmt.Println(arg)
@@ -76,14 +64,6 @@ func (l *Logger) Done(args ...interface{}) (ok bool) {
   l.modify(-1, msg)
 
   return
-}
-
-func Status(args ...interface{}) (msg *Message) {
-  return std.Status(args...)
-}
-
-func Statusf(format string, args ...interface{}) (msg *Message) {
-  return std.Statusf(format, args...)
 }
 
 func Done(args ...interface{}) bool {

@@ -1,10 +1,9 @@
 package main
 
 import (
-  "fmt"
-  "os"
-
   "github.com/gorobot-library/orca/cli"
+  log "github.com/gorobot-library/orca/logger"
+
   "github.com/spf13/cobra"
 )
 
@@ -28,7 +27,6 @@ func main() {
   cmd := newCLICommand()
   // Run the command.
 	if err := cmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }

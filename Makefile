@@ -10,7 +10,7 @@ ALPINE_MIRROR := http://nl.alpinelinux.org/alpine
 ALPINE_FILENAME := alpine-minirootfs-$(ALPINE_VERSION)-$(ALPINE_ARCH).tar.gz
 ALPINE_DOWNLOAD_URL := $(ALPINE_MIRROR)/$(ALPINE_DIST)/releases/$(ALPINE_ARCH)/$(ALPINE_FILENAME)
 
-DOCKER_DEV_OPTS := --rm -it -v "$$PWD:/go/src/github.com/gorobot-library/orca" --name dev
+DOCKER_DEV_OPTS := --rm -it -v "$$PWD:/go/src/github.com/gorobot-library/orca" -v "/var/run/docker.sock:/var/run/docker.sock" --name dev
 
 DOCKER_RUN_OPTS := --rm -it -v "/var/run/docker.sock:/var/run/docker.sock"
 DOCKER_RUN := docker run $(DOCKER_RUN_ORCA_OPTS) $(ORCA_IMAGE)

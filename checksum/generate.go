@@ -4,11 +4,12 @@ import (
   "bufio"
   "fmt"
   "io"
-  "log"
   "os"
   "path"
 
   "crypto/sha256"
+
+  log "github.com/gorobot-library/orca/logger"
 )
 
 func generateShasum(localFile string) string {
@@ -30,7 +31,7 @@ func generateShasum(localFile string) string {
   // The hash line is a combination of the hash, two spaces, and the filename.
   // fullHash := append(h.Sum(nil), ("  " + fn)...)
   fullHash := fmt.Sprintf("%x", h.Sum(nil)) + "  " + fn
-  fmt.Println(fullHash)
+  // fmt.Println(fullHash)
 
   return fullHash
 }
@@ -57,12 +58,12 @@ func createShasumFile(fn string, hashes []string) error {
   w := bufio.NewWriter(f)
 
   for _, h := range hashes {
-    n, err := w.WriteString(h + "\n")
+    _, err := w.WriteString(h + "\n")
     if err != nil {
       return err
     }
 
-    fmt.Printf("wrote %d bytes\n", n)
+    // fmt.Printf("wrote %d bytes\n", n)
   }
 
   w.Flush()
