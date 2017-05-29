@@ -1,7 +1,6 @@
 package builder
 
 import (
-  "context"
   "fmt"
   "os"
 
@@ -9,15 +8,12 @@ import (
 
   log "github.com/gorobot-library/orca/logger"
 
-  "github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-
   "github.com/Masterminds/semver"
-
   "github.com/spf13/viper"
 )
 
-func Validate(cfg *viper.Viper) (isValid bool, err error) {
+func Validate(cfg *viper.Viper) {
   // fmt.Print(log.Std)
   log.Info("Checking configuration...")
 
@@ -30,45 +26,21 @@ func Validate(cfg *viper.Viper) (isValid bool, err error) {
   log.Info("Has compatible docker version...")
   err = checkDockerVersion(c)
   if ok := log.Done(err); !ok {
+    log.Warn("Orca needs Docker >= 17.05 to run.")
     log.Fatal(err)
   }
-
-  // if err != nil {
-  //   log.Debug("\n")
-  //   log.Fatal(err)
-  // } else if !isValidVersion {
-  //   isValid = false
-  //   log.Modifyf(-1, log.ERROR, "Has compatible docker version... %s\n", "no")
-  //   log.Fatal("Orca needs Docker >= 17.05 to run.\n")
-  //   return
-  // }
-  //
-  // log.Modifyf(-1, log.INFO, "Has compatible docker version... %s\n", "ok")
 
   log.Info("Has base image...")
   err = checkBaseImageExists(cfg, c)
   if ok := log.Done(err); !ok {
     closestMatch, _ := getClosestMatch(cfg, c)
-    log.Warnf("Did you mean: %s\n", closestMatch)
+    log.Warnf("Did you mean %s?", closestMatch)
     //
     // NOTE: Prompt the user for confirmation. If yes, use the matched image.
     // NOTE: Perhaps try and download the image from Docker Hub?
     //
-    log.Error(err)
+    log.Fatal(err)
   }
-
-  // if err != nil {
-  //   log.Modify(-1, log.ERROR, "Has base image... no\n")
-  //   log.Fatal(err)
-  // } else if !isValidBaseImage {
-  //   isValid = false
-  //   log.Modify(-1, log.ERROR, "Has base image... no\n")
-  //
-  //   log.Fatal("Invalid base image.\n")
-  //   return
-  // }
-  //
-  // log.Modify(-1, log.INFO, "Has base image... ok\n")
 
   log.Info("Has valid Dockerfile...")
   err = checkDockerfileExists(cfg)
@@ -76,67 +48,11 @@ func Validate(cfg *viper.Viper) (isValid bool, err error) {
     log.Fatal(err)
   }
 
-  // if err != nil {
-  //   log.Modify(-1, log.ERROR, "Has valid Dockerfile... no\n")
-  //   log.Fatal(err)
-  // } else if !isDockerfileExists {
-  //   isValid = false
-  //   log.Modify(-1, log.ERROR, "Has valid Dockerfile... no\n")
-  //   log.Fatal("Dockerfile not found.\n")
-  //   return
-  // }
-  //
-  // log.Modify(-1, log.INFO, "Has valid Dockerfile... ok\n")
-
   log.Info("Has valid includes...")
   err = checkIncludeFilesExist(cfg)
   if ok := log.Done(err); !ok {
     log.Fatal(err)
   }
-
-  // if err != nil {
-  //   log.Modify(-1, log.ERROR, "Has valid includes... no\n")
-  //   log.Fatal(err)
-  // } else if !isIncludeFilesExist {
-  //   isValid = false
-  //   log.Modify(-1, log.ERROR, "Has valid includes... no\n")
-  //   log.Fatal("Include files not found.\n")
-  //   return
-  // }
-  //
-  // log.Modify(-1, log.INFO, "Has valid includes... ok\n")
-
-  // check := checkIncludeFilesExist(cfg)
-  // isValid = check("Has valid includes...", check)
-
-  isValid = true
-  return
-}
-
-// func check(msg string, vf func(args ...interface{}) error) (valid bool) {
-//   m := logger.NewLogger(logger.LoggerOptions{})
-//
-  // log.Info("%s...", msg)
-//   vret, err := vf(args...)
-//   if err != nil {
-    // log.Error("%s... no\n", msg)
-    // log.Fatal(err)
-//   } else if !vret {
-    // log.Error("%s... no\n", msg)
-    // log.Fatal("Include files not found.\n")
-//   }
-//
-  // log.Info("%s... ok\n", msg)
-//
-//   valid = true
-//
-//   return
-// }
-
-func getServerVersion(c *client.Client) (ver string, err error) {
-  v, err := c.ServerVersion(context.Background())
-  ver = v.Version
-  return
 }
 
 func checkDockerVersion(c *client.Client) (err error) {
@@ -155,21 +71,6 @@ func checkDockerVersion(c *client.Client) (err error) {
   if !ok {
     err = fmt.Errorf("Invalid Docker version.\n")
   }
-
-  return
-}
-
-func getImages(c *client.Client) (imageTags []string, err error) {
-	images, err := c.ImageList(context.Background(), types.ImageListOptions{})
-	if err != nil {
-		return
-	}
-
-	for _, image := range images {
-    for _, tag := range image.RepoTags {
-      imageTags = append(imageTags, tag)
-    }
-	}
 
   return
 }

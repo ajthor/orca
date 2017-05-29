@@ -54,8 +54,7 @@ func (l *Logger) SetLogLevel(lvl Level) {
 func (l *Logger) format(msg *Message) string {
   spmsg := msg.String()
 
-  // Trim any trailing newlines. We want the log to be clean and the newline is
-  // added below.
+  // Trim any trailing newlines. We want the log to be clean.
   spmsg = strings.TrimRight(spmsg, "\n")
   // Append a single newline to the end of the formatted string.
   if last := len(spmsg) - 1; spmsg[last] != 10 && spmsg[last] != 109 {

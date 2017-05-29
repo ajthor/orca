@@ -27,16 +27,7 @@ var buildCmd = &cobra.Command{
 
     buildCfg := cfg.Sub("build")
 
-    isValid, err := builder.Validate(buildCfg)
-    if err != nil {
-      log.Fatal(err)
-    } else if !isValid {
-      log.Fatal("Cannot build image. Invalid configuration.\n")
-    }
-
-    // err = builder.Build(buildCfg)
-    // if err != nil {
-    //   log.Std.Fatal(err)
-    // }
+    builder.Validate(buildCfg)
+    builder.Build(buildCfg)
   },
 }

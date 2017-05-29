@@ -54,11 +54,13 @@ func (l *Logger) Done(args ...interface{}) (ok bool) {
 
   // Update the log message and modify the history.
   if ok {
-    msg.lvl = INFO
-    msg.args = append(msg.args, Green(" ok\n"))
+    // msg.lvl = INFO
+    // msg.args = append(msg.args, Sprintf(Green(" ok\n")))
+    msg.append(Sprintf(Green(" ok\n")))
   } else {
     msg.lvl = ERROR
-    msg.args = append(msg.args, Red(" err\n"))
+    // msg.args = append(msg.args, Sprintf(Red(" err\n")))
+    msg.append(Sprintf(Red(" err\n")))
   }
 
   l.modify(-1, msg)

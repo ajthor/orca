@@ -12,13 +12,13 @@ import (
 )
 
 func createTempdir() string {
-  // Create a temporary directory. Default is /tmp/checksumXXXXXXXXX
-  dir, err := ioutil.TempDir("", "checksum")
+  // Create a temporary directory. Default is /tmp/orca.checksumXXXXXXXXX
+  dir, err := ioutil.TempDir("", "orca.checksum")
 	if err != nil {
 		log.Fatal(err)
 	}
-  
-  log.Debugf("Created temp directory: %s", dir)
+
+  log.Debugf("temp: %s", dir)
 
   return dir
 }

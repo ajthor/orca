@@ -1,28 +1,66 @@
 # Sample Orca configuration file.
 
-# Go templating will be used on any lines that include it.
-
 name = "sample"
 
 [remote]
+# mirror
+# ------
 # Files will be downloaded using the remote mirror + file combination.
+#
 mirror = "http://github.com/download/"
+
+# file
+# ----
 # Be sure to include a {{version}} template item in the url or filename to
 # substitute the version number in the final url.
+#
 file = "sample-{{version}}.tar.gz"
 
+# A sample resulting filename with the above two values would be:
+#   http://github.com/download/sample-0.1.2.tar.gz
+
 [build]
-baseImage = "scratch"
+# base
+# ----
+# Orca will check to make sure the base image is present before attempting to
+# build the image.
+#
+base = "scratch"
+
+# tags
+# ----
+# Any tags specified under the tags field will be applied to the image when it
+# is built. This can be an effective way to specify a local repository at build
+# time.
+#
+tags = [
+  "sample:latest"
+  ]
+
+# version
+# -------
 # The version specified here is the one that will be built in the current
 # image. The version specified here must also be in the "versions" list below
 # for shasum verification of the download.
+#
 version = "0.6.7"
-includeFiles = [
-  "{{name}}/docker-entrypoint.sh",
-  "{{name}}/script.sh",
+
+# dockerfile
+# ----------
+dockerfile = "./Dockerfile"
+
+# includes
+# --------
+# All files listed as 'includes' are copied to the build context before
+# building the Docker image.
+includes = [
+  "./docker-entrypoint.sh",
+  "./script.sh",
   ]
 
 [checksum]
+# versions
+# --------
 # Versions specified will be downloaded into a temporary directory and sha256
 # checksums will be generated for each file.
 versions = [
