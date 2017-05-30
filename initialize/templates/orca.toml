@@ -1,0 +1,25 @@
+# Orca configuration file.
+
+name = "{{.Name}}"
+
+# remote
+# ------
+#
+# [remote]
+# mirror = "http://github.com/download/"
+# file = "sample-{{.Version}}.tar.gz"
+#
+
+[build]
+base = "{{.Base}}"
+tags = [
+  "{{.Tag}}"
+  ]
+dockerfile = "./Dockerfile"
+version = "{{.Version}}"
+includes = []
+
+[checksum]
+versions = [
+  "{{.Version}}"
+  ]
