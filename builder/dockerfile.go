@@ -93,9 +93,3 @@ func generateDockerfile(cfg *viper.Viper, dir string) (path string, err error) {
 
   return
 }
-
-func copyDockerfile(df string, dir string) (path string, dest *os.File, err error) {
-
-
-  return
-}

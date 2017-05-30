@@ -1,9 +1,9 @@
 package config
 
+// log "github.com/gorobot-library/orca/logger"
 import (
   "errors"
   "fmt"
-  "log"
 
   "github.com/spf13/viper"
 )
@@ -31,9 +31,7 @@ type Config struct {
 
 // Read in the configuration file. Will usually be specified as orca.toml, but
 // viper supports JSON and YAML files, as well.
-func NewConfig(configName string) *viper.Viper {
-  // config := &Config{}
-
+func NewConfig(configName string) (*viper.Viper, error) {
   cfg := viper.New()
 
   // The name of the configuration file, without extensions.
@@ -45,23 +43,21 @@ func NewConfig(configName string) *viper.Viper {
 
   // Actually read in the configuration. Once we have read the configuration,
   // we can access members of the config using viper.Get()
-  err := cfg.ReadInConfig()
-  if err != nil {
-    log.Fatal("Configuration file not found.")
+  if err := cfg.ReadInConfig(); err != nil {
+    return nil, err
   }
-
   // err := cfg.Unmarshal(&config)
   // if err != nil {
   //   fmt.Println("Could not unmarshal configuration.")
   // 	log.Fatal("Syntax error in configuration file.")
   // }
 
-  return cfg
+  return cfg, nil
 }
 
 func HasRequired(cfg *viper.Viper, requiredFields []string) error {
   for _, v := range requiredFields {
-    if set := cfg.IsSet(v); set != true {
+    if set := cfg.IsSet(v); !set {
       return errors.New(fmt.Sprintf("Required field: %s", v))
     }
   }

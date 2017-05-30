@@ -34,7 +34,10 @@ func Validate(cfg *viper.Viper) {
   err = checkBaseImageExists(cfg, c)
   if ok := log.Done(err); !ok {
     closestMatch, _ := getClosestMatch(cfg, c)
-    log.Warnf("Did you mean %s?", closestMatch)
+    res := log.Promptf(log.YESNO, "Did you mean %s?", closestMatch)
+    if log.FormatResponse(res) == log.YES {
+      cfg.Set("base", closestMatch)
+    }
     //
     // NOTE: Prompt the user for confirmation. If yes, use the matched image.
     // NOTE: Perhaps try and download the image from Docker Hub?

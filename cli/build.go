@@ -14,7 +14,10 @@ var buildCmd = &cobra.Command{
   Long:  `Builds Docker images.`,
   Run: func(cmd *cobra.Command, args []string) {
     // Read the configuration file.
-    cfg := config.NewConfig("orca")
+    cfg, err := config.NewConfig("orca")
+    if err != nil {
+      log.Fatal("Configuration file not found.")
+    }
 
     req := []string{
       "build",

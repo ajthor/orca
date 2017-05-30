@@ -14,10 +14,10 @@ var checksumCmd = &cobra.Command{
   Long:  `Generates checksum files.`,
   Run: func(cmd *cobra.Command, args []string) {
     // Read the configuration file.
-    cfg := config.NewConfig("orca")
-    // if err := config.ReadConfig(cfg); err != nil {
-    //   log.Fatal(err)
-    // }
+    cfg, err := config.NewConfig("orca")
+    if err != nil {
+      log.Fatal("Configuration file not found.")
+    }
 
     req := []string{
       "remote",
