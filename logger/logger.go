@@ -12,11 +12,11 @@ import (
 type Level int
 
 const (
-    FATAL Level = iota
-    ERROR
-    WARNING
-    INFO
-    DEBUG
+  FATAL Level = iota
+  ERROR
+  WARNING
+  INFO
+  DEBUG
 )
 
 type logger interface {
@@ -90,7 +90,7 @@ func (l *Logger) log(lvl Level, format *string, args ...interface{}) *Message {
   // example.
   if lvl <= l.logLevel {
     rmsg := l.format(msg)
-    fmt.Printf(rmsg)
+    fmt.Print(rmsg)
   }
 
   return msg
