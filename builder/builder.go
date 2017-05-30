@@ -39,7 +39,7 @@ func Build(cfg *viper.Viper) {
     log.Fatal(err)
   }
 
-  buildOptions.Context = buildContext
+  // buildOptions.Context = buildContext
 
   log.Info("Building image...")
   resp, err := c.ImageBuild(context.Background(), buildContext, buildOptions)
@@ -58,7 +58,6 @@ func createBuildContext(cfg *viper.Viper) (tarFile *os.File, err error) {
   // We create a temporary directory for the build context.
   dir := createTempdir()
 
-  df := cfg.GetString("dockerfile")
   includes := cfg.GetStringSlice("includes")
 
   // Create the tar file.
@@ -78,7 +77,13 @@ func createBuildContext(cfg *viper.Viper) (tarFile *os.File, err error) {
 	defer tw.Close()
 
   // Add the dockerfile to the includes.
-  includes = append(includes, df)
+  // includes = append(includes, df)
+  fp, err := generateDockerfile(cfg, dir)
+  log.Infof("---> %s\n", fp)
+  err = addTarFile(tw, fp)
+  if err != nil {
+    return tarFile, err
+  }
 
   // Copy in the include files.
   for _, file := range includes {
@@ -87,7 +92,7 @@ func createBuildContext(cfg *viper.Viper) (tarFile *os.File, err error) {
       return tarFile, err
     }
 
-    log.Infof("---> %s\n", file)
+    log.Infof("---> %s\n", fp)
     err = addTarFile(tw, fp)
     if err != nil {
       return tarFile, err

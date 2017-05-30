@@ -1,7 +1,9 @@
 package checksum
 
 import (
+  "bufio"
   "os"
+  "strings"
 
   "io/ioutil"
   "path/filepath"
@@ -23,7 +25,7 @@ func createTempdir() string {
   return dir
 }
 
-func GenerateChecksums(cfg *viper.Viper, versions []string) error {
+func GenerateChecksums(cfg *viper.Viper, versions []string) {
   log.Info("Generating shasums...")
 
   dir := createTempdir()
@@ -48,9 +50,9 @@ func GenerateChecksums(cfg *viper.Viper, versions []string) error {
 
   // Iterate over the versions and generate and hashes for each file.
   for i, ver := range versions {
-    fn := getFilename(cfg, ver)
+    fn := GetFilename(cfg, ver)
     log.Debugf("Generated filename: %s", fn)
-    uri := getURI(cfg, fn)
+    uri := GetURI(cfg, fn)
     log.Debugf("Generated uri: %s", uri)
 
     dlFile := filepath.Join(dir, fn)
@@ -78,5 +80,32 @@ func GenerateChecksums(cfg *viper.Viper, versions []string) error {
     log.Fatal(err)
   }
 
-  return nil
+}
+
+func GetChecksum(file string) (shasum string) {
+  cwd, err := os.Getwd()
+  if err != nil {
+      log.Fatal(err)
+  }
+
+  shasumFilePath := filepath.Join(cwd, "SHASUMS256.txt")
+
+  sf, err := os.Open(shasumFilePath)
+  if err != nil {
+      log.Fatal(err)
+  }
+  defer sf.Close()
+
+  scanner := bufio.NewScanner(sf)
+  for scanner.Scan() {
+    if contains := strings.Contains(scanner.Text(), file); contains {
+      shasum = scanner.Text()
+    }
+  }
+
+  if err := scanner.Err(); err != nil {
+      log.Fatal(err)
+  }
+
+  return
 }

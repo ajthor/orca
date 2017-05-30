@@ -28,6 +28,6 @@ var buildCmd = &cobra.Command{
     buildCfg := cfg.Sub("build")
 
     builder.Validate(buildCfg)
-    builder.Build(buildCfg)
+    builder.Build(cfg)
   },
 }

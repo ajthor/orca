@@ -26,7 +26,7 @@ func Validate(cfg *viper.Viper) {
   log.Info("Has compatible docker version...")
   err = checkDockerVersion(c)
   if ok := log.Done(err); !ok {
-    log.Warn("Orca needs Docker >= 17.05 to run.")
+    log.Warn("Orca needs Docker >= 17.05 to build images.")
     log.Fatal(err)
   }
 
@@ -56,7 +56,7 @@ func Validate(cfg *viper.Viper) {
 }
 
 func checkDockerVersion(c *client.Client) (err error) {
-  minVer, err := semver.NewConstraint(">= 17.02.*-ce")
+  minVer, err := semver.NewConstraint(">= 17.05.*-ce")
   if err != nil {
     return
   }

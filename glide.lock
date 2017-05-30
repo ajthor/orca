@@ -1,5 +1,5 @@
-hash: aa9f5c1d88acad1a0712102c2cd6988671f3a65bf368d8979b95ecfb2bc92279
-updated: 2017-05-08T23:05:54.179077397Z
+hash: 42f9e8aef6ea663e39291e532eb03b93ddfad008a3b246a48fa14e9beb242340
+updated: 2017-05-29T22:43:01.159253249Z
 imports:
 - name: github.com/docker/distribution
   version: ce936a85915a55418ea62dc32a0a1274f2740104
@@ -7,7 +7,7 @@ imports:
   - digestset
   - reference
 - name: github.com/docker/docker
-  version: 4b846a125b1618e19b389bcdf88b57bef0a05817
+  version: 90d35abf7b3535c1c319c872900fbd76374e521c
   subpackages:
   - api
   - api/types
@@ -24,6 +24,7 @@ imports:
   - api/types/time
   - api/types/versions
   - api/types/volume
+  - client
   - pkg/ioutils
   - pkg/longpath
   - pkg/system
@@ -53,17 +54,16 @@ imports:
   - json/token
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+- name: github.com/logrusorgru/aurora
+  version: 962a6974312dde57d1f6f5738b4f83e1af9f38a4
 - name: github.com/magiconair/properties
   version: 51463bfca2576e06c62a8504b5c0f06d61312647
+- name: github.com/Masterminds/semver
+  version: abff1900528dbdaf6f3f5aa92c398be1eaf2a9f7
 - name: github.com/Microsoft/go-winio
   version: d311c76e775b5092c023569caacdbb4e569c3243
 - name: github.com/mitchellh/mapstructure
   version: cc8532a8e9a55ea36402aa21efdf403a60d34096
-- name: github.com/moby/moby
-  version: 90d35abf7b3535c1c319c872900fbd76374e521c
-  subpackages:
-  - api/types
-  - client
 - name: github.com/opencontainers/go-digest
   version: aa2ec055abd10d26d539eb630a92241b781ce4bc
 - name: github.com/pelletier/go-buffruneio
