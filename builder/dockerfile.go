@@ -1,46 +1,29 @@
 package builder
 
 import (
-  "io"
   "os"
 
   "path/filepath"
   "text/template"
 
   "github.com/gorobot-library/orca/checksum"
-  log "github.com/gorobot-library/orca/logger"
 
   "github.com/spf13/viper"
 )
 
-func generateDockerfile(cfg *viper.Viper, dir string) (fp string, err error) {
-  df := cfg.GetString("dockerfile")
-  // Copy Dockerfile.
-  fp, err = copyDockerfile(df, dir)
-  if err != nil {
-    return
-  }
+func generateDockerfile(cfg *viper.Viper, dir string) (path string, err error) {
+  buildCfg := cfg.Sub("build")
+  base := buildCfg.GetString("base")
+  df := buildCfg.GetString("dockerfile")
+  version := buildCfg.GetString("version")
 
-  // Template the new Dockerfile.
-  log.Info("Templating Dockerfile...")
-  err = templateDockerfile(cfg, fp)
-  if ok := log.Done(err); !ok {
-    return
-  }
+  remoteCfg := cfg.Sub("remote")
+  mirror := remoteCfg.GetString("mirror")
 
-  return
-}
-
-func templateDockerfile(cfg *viper.Viper, path string) (err error) {
-  base := cfg.GetString("base")
-  mirror := cfg.GetString("mirror")
-  version := cfg.GetString("version")
-
-  fn := checksum.GetFilename(cfg, version)
-  uri := checksum.GetURI(cfg, fn)
+  fn := checksum.GetFilename(remoteCfg, version)
+  uri := checksum.GetURI(remoteCfg, fn)
 
   hash := checksum.GetChecksum(fn)
-  log.Infof("Hash: %s", hash)
 
   data := struct {
     Base, Version, Hash, File, Mirror, URL string
@@ -53,19 +36,57 @@ func templateDockerfile(cfg *viper.Viper, path string) (err error) {
     URL: uri,
   }
 
-  file, err := os.Open(path)
+  // absPath, err := filepath.Abs(df)
+  // if err != nil {
+  //   return
+  // }
+  // log.Debugf("Abs path: %s", absPath)
+  // src, err := os.Open(absPath)
+  // if err != nil {
+  //   return
+  // }
+  //
+  // defer src.Close()
+  //
+  // newPath := filepath.Join(dir, "Dockerfile")
+  // log.Debugf("New path: %s", newPath)
+  // dest, err := os.Create(newPath)
+  // if err != nil {
+  //   return
+  // }
+  //
+  // defer dest.Close()
+  //
+  // if _, err = io.Copy(dest, src); err != nil {
+  //   return
+  // }
+  //
+  // if err = dest.Sync(); err != nil {
+  //   return
+  // }
+
+  src, _ := filepath.Abs(df)
+  // src, err := os.Open(absPath)
+  // if err != nil {
+  //   return
+  // }
+  //
+  // defer src.Close()
+
+  path = filepath.Join(dir, "Dockerfile")
+  dest, err := os.Create(path)
   if err != nil {
     return
   }
 
-  defer file.Close()
+  defer dest.Close()
 
-  t, err := template.ParseFiles(path)
+  t, err := template.ParseFiles(src)
   if err != nil {
 		return
 	}
 
-  err = t.Execute(file, data)
+  err = t.Execute(dest, data)
   if err != nil {
     return
   }
@@ -73,30 +94,8 @@ func templateDockerfile(cfg *viper.Viper, path string) (err error) {
   return
 }
 
-func copyDockerfile(f string, dir string) (newPath string, err error) {
-  absPath, _ := filepath.Abs(f)
-  src, err := os.Open(absPath)
-  if err != nil {
-    return
-  }
+func copyDockerfile(df string, dir string) (path string, dest *os.File, err error) {
 
-  defer src.Close()
-
-  newPath = filepath.Join(dir, "Dockerfile")
-  dest, err := os.Create(newPath)
-  if err != nil {
-    return
-  }
-
-  defer dest.Close()
-
-  if _, err = io.Copy(dest, src); err != nil {
-    return
-  }
-
-  if err = dest.Sync(); err != nil {
-    return
-  }
 
   return
 }

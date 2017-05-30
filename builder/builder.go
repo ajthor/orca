@@ -44,9 +44,6 @@ func Build(cfg *viper.Viper) {
   log.Info("Building image...")
   resp, err := c.ImageBuild(context.Background(), buildContext, buildOptions)
   if ok := log.Done(err); !ok {
-    log.Info(buildOptions)
-    log.Info(buildContext)
-    log.Info(resp)
     log.Fatal(err)
   }
   defer resp.Body.Close()
@@ -78,7 +75,12 @@ func createBuildContext(cfg *viper.Viper) (tarFile *os.File, err error) {
 
   // Add the dockerfile to the includes.
   // includes = append(includes, df)
+  log.Info("Templating Dockerfile...")
   fp, err := generateDockerfile(cfg, dir)
+  if ok := log.Done(err); !ok {
+    return
+  }
+  // fp, err := generateDockerfile(cfg, dir)
   log.Infof("---> %s\n", fp)
   err = addTarFile(tw, fp)
   if err != nil {
