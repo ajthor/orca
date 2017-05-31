@@ -85,7 +85,7 @@ func Build(cfg *viper.Viper) {
 }
 
 func createBuildContext(cfg *viper.Viper, dir string) (ctx io.ReadCloser, err error) {
-  includes := cfg.GetStringSlice("includes")
+  includes := cfg.GetStringSlice("build.includes")
 
   // tarIncludes := make([]string, len(includes) + 1)
 

@@ -65,7 +65,8 @@ RUN git clone https://github.com/gorobot-library/orca .
 RUN glide install
 
 # Build the binary.
-RUN go build github.com/gorobot-library/orca/cmd/orca
+RUN go generate ./initialize \
+ && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o orca ./cmd/orca
 
 # ----------------------------------------
 # Orca
@@ -73,8 +74,11 @@ RUN go build github.com/gorobot-library/orca/cmd/orca
 # Creates the orca image using the binary from the builder.
 FROM scratch
 
+# Copy the ca-certificates files.
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
 # Copy the binary.
-COPY --from=builder /go/bin/orca /bin/orca
+COPY --from=builder /go/src/github.com/gorobot-library/orca/orca /
 
 # Run the binary.
 ENTRYPOINT ["/orca"]

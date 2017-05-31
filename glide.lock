@@ -1,5 +1,5 @@
-hash: d874296d463372d1c45ea42cf7e6a1c2ca273a232efe91235bfa4b0c61f11b1e
-updated: 2017-05-31T08:11:05.601072575Z
+hash: 89f8d03245338188779cece1024de8d5557b5eb3edcc29ee1a0ff83dab17dce2
+updated: 2017-05-31T21:44:36.337154253Z
 imports:
 - name: github.com/Azure/go-ansiterm
   version: fa152c58bc15761d0200cb75fe958b89a9d4888e
@@ -67,6 +67,8 @@ imports:
   - json/token
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+- name: github.com/jteeuwen/go-bindata
+  version: a0ff2567cfb70903282db057e799fd826784d41d
 - name: github.com/logrusorgru/aurora
   version: 962a6974312dde57d1f6f5738b4f83e1af9f38a4
 - name: github.com/magiconair/properties

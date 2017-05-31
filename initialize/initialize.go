@@ -1,5 +1,7 @@
 package initialize
 
+//go:generate go-bindata -pkg $GOPACKAGE -o assets.go templates/...
+
 import (
   "os"
 
@@ -23,7 +25,7 @@ func GenerateProjectFiles(data *TemplateData) {
 
   log.Info("Creating project files...")
 
-  tpl = "./initialize/templates/Dockerfile.tmpl"
+  tpl = "templates/Dockerfile.tmpl"
   err := templateFile(tpl, "Dockerfile", data)
   if err != nil {
     log.Fatal(err)
@@ -80,16 +82,10 @@ func GetTemplateData() *TemplateData {
 }
 
 func getName() string {
-  cwd, err := os.Getwd()
-  if err != nil {
-      log.Fatal(err)
-  }
-
-  cwdBase := filepath.Base(cwd)
-
-  name := log.Promptf(log.DEFAULT, "Project name (%s):", cwdBase)
+  defaultName := "project"
+  name := log.Promptf(log.DEFAULT, "Project name (%s):", defaultName)
   if name == "" {
-    name = cwdBase
+    name = defaultName
   }
 
   return name
@@ -140,9 +136,17 @@ func getHasEntrypoint() bool {
 }
 
 func templateFile(srcPath, destPath string, data interface{}) (err error) {
-  src, _ := filepath.Abs(srcPath)
+  // src, _ := filepath.Abs(srcPath)
+  assetData, err := Asset(srcPath)
+  if err != nil {
+    return
+  }
 
-  dir, _ := os.Getwd()
+  ex, err := os.Executable()
+  if err != nil {
+    return
+  }
+  dir := filepath.Dir(ex)
   // relPath, err := filepath.Rel("template", )
 
   path := filepath.Join(dir, destPath)
@@ -165,7 +169,7 @@ func templateFile(srcPath, destPath string, data interface{}) (err error) {
 
   defer dest.Close()
 
-  t, err := template.ParseFiles(src)
+  t, err := template.New("").Parse(string(assetData))
   if err != nil {
     return
   }
