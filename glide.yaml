@@ -5,6 +5,9 @@ import:
   subpackages:
   - api/types
   - client
+  - pkg/archive
+  - pkg/jsonmessage
+  - pkg/term
 - package: github.com/spf13/cobra
 - package: github.com/spf13/viper
 - package: github.com/Masterminds/semver

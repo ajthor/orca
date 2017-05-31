@@ -15,12 +15,12 @@ import (
 
 func createTempdir() string {
   // Create a temporary directory. Default is /tmp/orca.checksumXXXXXXXXX
-  dir, err := ioutil.TempDir("", "orca.checksum")
+  dir, err := ioutil.TempDir("", "checksum")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-  log.Debugf("temp: %s", dir)
+  log.Debugf("---> %s", dir)
 
   return dir
 }
@@ -89,6 +89,10 @@ func GetChecksum(file string) (shasum string) {
   }
 
   shasumFilePath := filepath.Join(cwd, "SHASUMS256.txt")
+
+  if _, err := os.Stat(shasumFilePath); os.IsNotExist(err) {
+    return ""
+  }
 
   sf, err := os.Open(shasumFilePath)
   if err != nil {

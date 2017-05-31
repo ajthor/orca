@@ -39,9 +39,9 @@ func (l *Logger) formatPrompt(msg *Message) string {
   case DEFAULT:
     return fmt.Sprintf("%s: ", spmsg)
   case YESNO:
-    return fmt.Sprintf("%s [%s]: ", spmsg, Brown("Yn"))
+    return fmt.Sprintf("%s [%s]: ", spmsg, Brown("yN"))
   case YESNOCANCEL:
-    return fmt.Sprintf("%s [%s]: ", spmsg, Brown("Ync"))
+    return fmt.Sprintf("%s [%s]: ", spmsg, Brown("yNc"))
   default:
     return fmt.Sprintf("%s: ", spmsg)
   }

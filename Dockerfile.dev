@@ -3,8 +3,11 @@ FROM golang:1.8-alpine
 WORKDIR /go/src/github.com/gorobot-library/orca
 
 RUN apk add --no-cache \
+    gcc \
     git \
     glide \
+    musl-dev \
+    openssl \
     make
 
 RUN mkdir -p "$HOME/.orca"
