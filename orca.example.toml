@@ -1,20 +1,21 @@
 # Sample Orca configuration file.
 
-name = "sample"
+name = "orca"
 
 [remote]
 # mirror
 # ------
 # Files will be downloaded using the remote mirror + file combination.
 #
-mirror = "http://github.com/download/"
+mirror = "http://gorobot.io/orca/releases"
 
 # file
 # ----
-# Be sure to include a {{version}} template item in the url or filename to
-# substitute the version number in the final url.
+# The file name can include Go templating to include the distribution version
+# in the file name. Use "{{"{{.Version}}"}}" in the file name to replace the
+# versions specified later in the file.
 #
-file = "sample-{{version}}.tar.gz"
+file = "orca-{{.Version}}.tar.gz"
 
 # A sample resulting filename with the above two values would be:
 #   http://github.com/download/sample-0.1.2.tar.gz
@@ -34,7 +35,7 @@ base = "scratch"
 # time.
 #
 tags = [
-  "sample:latest"
+  "robolib/orca:0.1.12"
   ]
 
 # version
@@ -43,7 +44,7 @@ tags = [
 # image. The version specified here must also be in the "versions" list below
 # for shasum verification of the download.
 #
-version = "0.6.7"
+version = "0.1.12"
 
 # dockerfile
 # ----------
@@ -55,7 +56,6 @@ dockerfile = "./Dockerfile"
 # building the Docker image.
 includes = [
   "./docker-entrypoint.sh",
-  "./script.sh",
   ]
 
 [checksum]
@@ -64,5 +64,5 @@ includes = [
 # Versions specified will be downloaded into a temporary directory and sha256
 # checksums will be generated for each file.
 versions = [
-  "0.1.2", "0.2.3", "0.4.5", "0.6.7"
+  "0.1.12", "0.1.11", "0.1.5", "0.1.0"
   ]

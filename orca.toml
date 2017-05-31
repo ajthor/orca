@@ -1,0 +1,23 @@
+# Orca configuration file.
+
+name = "orca"
+
+[remote]
+# The file name can include Go templating to include the distribution version
+# in the file name. Use "{{.Version}}" in the file name to replace the
+# versions specified later in the file.
+#
+file = "orca-{{.Version}}.tar.gz"
+mirror = "http://gorobot.io/orca/releases"
+
+[build]
+base = "scratch"
+tags = ["robolib/orca:0.0.1"]
+dockerfile = "./Dockerfile"
+version = "0.0.1"
+includes = []
+
+[checksum]
+versions = [
+  "0.0.1"
+  ]
