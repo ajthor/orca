@@ -16,7 +16,7 @@ var checksumCmd = &cobra.Command{
     // Read the configuration file.
     cfg, err := config.NewConfig("orca")
     if err != nil {
-      log.Fatal("Configuration file not found.")
+      log.Fatal(err)
     }
 
     req := []string{
@@ -36,5 +36,6 @@ var checksumCmd = &cobra.Command{
 
     checksum.GenerateChecksums(remoteCfg, versions)
 
+    log.Info("Done.")
   },
 }

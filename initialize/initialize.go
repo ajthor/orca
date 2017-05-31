@@ -7,35 +7,139 @@ import (
   "text/template"
 
   log "github.com/gorobot-library/orca/logger"
-
-  "github.com/spf13/viper"
 )
 
-func Initialize(cfg *viper.Viper) {
-  log.Info("Initializing...")
+func GenerateConfigFile(data *TemplateData) {
+  log.Info("Creating orca.toml...")
 
-  name := cfg.GetString("name")
-  base := cfg.GetString("build.base")
-  version := cfg.GetString("build.version")
-
-  data := &TemplateData{
-    Name: name,
-    Base: base,
-    Version: version,
-  }
-
-  err := templateFile("./initialize/templates/Dockerfile", "Dockerfile", data)
+  err := templateFile("./initialize/templates/orca.toml.tmpl", "orca.toml", data)
   if err != nil {
     log.Fatal(err)
   }
-  // log.Prompt(log.YESNO, "Does your Dockerfile use a base language?")
+}
+
+func GenerateProjectFiles(data *TemplateData) {
+  var tpl string
+
+  log.Info("Creating project files...")
+
+  tpl = "./initialize/templates/Dockerfile.tmpl"
+  err := templateFile(tpl, "Dockerfile", data)
+  if err != nil {
+    log.Fatal(err)
+  }
+
+  if data.HasEntrypoint {
+    tpl = "./initialize/templates/docker-entrypoint.sh.tmpl"
+    err := templateFile(tpl, "docker-entrypoint.sh", data)
+    if err != nil {
+      log.Fatal(err)
+    }
+  }
 }
 
 type TemplateData struct {
-  Name, Base, Version string
+  Name, Base, Version, Tag, Mirror, File string
+  HasEntrypoint bool
 }
 
-func templateFile(srcPath, destPath string, data *TemplateData) (err error) {
+func GetTemplateData() *TemplateData {
+  log.Info("Let's get some basic information about your project:")
+
+  name := getName()
+  log.ShowInput(name)
+
+  base := getBase()
+  log.ShowInput(base)
+
+  version := getVersion()
+  log.ShowInput(version)
+
+  tag := getTag()
+  log.ShowInput(tag)
+
+  mirror := getRemoteMirror()
+  log.ShowInput(mirror)
+
+  file := getRemoteFile()
+  log.ShowInput(file)
+
+  hasEntrypoint := getHasEntrypoint()
+
+  // res := log.Prompt(log.YESNO, "Does your Dockerfile use a base language?")
+
+  return &TemplateData{
+    Name: name,
+    Base: base,
+    Version: version,
+    Tag: tag,
+    Mirror: mirror,
+    File: file,
+    HasEntrypoint: hasEntrypoint,
+  }
+}
+
+func getName() string {
+  cwd, err := os.Getwd()
+  if err != nil {
+      log.Fatal(err)
+  }
+
+  cwdBase := filepath.Base(cwd)
+
+  name := log.Promptf(log.DEFAULT, "Project name (%s):", cwdBase)
+  if name == "" {
+    name = cwdBase
+  }
+
+  return name
+}
+
+func getBase() string {
+  defaultBase := "scratch"
+  base := log.Promptf(log.DEFAULT, "Base image (%s):", defaultBase)
+  if base == "" {
+    base = defaultBase
+  }
+
+  return base
+}
+
+func getVersion() string {
+  defaultVersion := "0.0.1"
+  version := log.Promptf(log.DEFAULT, "Version (%s):", defaultVersion)
+  if version == "" {
+    version = defaultVersion
+  }
+
+  return version
+}
+
+func getTag() string {
+  return log.Prompt(log.DEFAULT, "Docker tag (e.g. repository/image:tag):")
+}
+
+func getRemoteMirror() string {
+  return log.Prompt(log.DEFAULT, "Remote mirror (e.g. http://github.com/download/):")
+}
+
+func getRemoteFile() string {
+  return log.Promptf(log.DEFAULT, "Remote file (e.g. sample-{{.Version}}.tar.gz):")
+}
+
+func getHasEntrypoint() bool {
+  res := log.Prompt(log.YESNO, "Does your Dockerfile have an entrypoint?")
+  log.ShowInput(res)
+
+  fres := log.FormatResponse(res)
+  if fres == log.YES {
+    return true
+  }
+
+  return false
+}
+
+func templateFile(srcPath, destPath string, data interface{}) (err error) {
   src, _ := filepath.Abs(srcPath)
 
   dir, _ := os.Getwd()
@@ -45,15 +149,13 @@ func templateFile(srcPath, destPath string, data *TemplateData) (err error) {
   log.Infof("---> %s", path)
 
   if _, err = os.Stat(path); err == nil {
-    res := log.Prompt(log.YESNO, "File already exists. Overwrite?")
+    res := log.Promptf(log.YESNO, "%s already exists. Overwrite?", path)
     log.ShowInput(res)
 
     fres := log.FormatResponse(res)
     if fres != log.YES {
       return
     }
-  } else {
-    return
   }
 
   dest, err := os.Create(path)

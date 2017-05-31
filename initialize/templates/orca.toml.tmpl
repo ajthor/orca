@@ -1,0 +1,23 @@
+# Orca configuration file.
+
+name = "{{.Name}}"
+
+[remote]
+# The file name can include Go templating to include the distribution version
+# in the file name. Use "{{"{{.Version}}"}}" in the file name to replace the
+# versions specified later in the file.
+#
+file = "{{.File}}"
+mirror = "{{.Mirror}}"
+
+[build]
+base = "{{.Base}}"
+tags = ["{{.Tag}}"]
+dockerfile = "./Dockerfile"
+version = "{{.Version}}"
+includes = [{{if .HasEntrypoint -}}"./docker-entrypoint.sh"{{- end}}]
+
+[checksum]
+versions = [
+  "{{.Version}}"
+  ]

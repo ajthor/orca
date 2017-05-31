@@ -16,7 +16,7 @@ var buildCmd = &cobra.Command{
     // Read the configuration file.
     cfg, err := config.NewConfig("orca")
     if err != nil {
-      log.Fatal("Configuration file not found.")
+      log.Fatal(err)
     }
 
     req := []string{
@@ -32,5 +32,7 @@ var buildCmd = &cobra.Command{
 
     builder.Validate(buildCfg)
     builder.Build(cfg)
+
+    log.Info("Done.")
   },
 }
