@@ -8,65 +8,60 @@ import (
 
   log "github.com/gorobot-library/orca/logger"
 
-	"github.com/docker/docker/client"
+  "github.com/docker/docker/client"
   "github.com/Masterminds/semver"
-  "github.com/spf13/viper"
 )
 
-func Validate(cfg *viper.Viper) {
-  // fmt.Print(log.Std)
+var MinDockerVersion string = ">= 17.05.*-ce"
+
+func (b *Builder) Validate(opts *BuildOptions) error {
   log.Info("Checking configuration...")
 
-  c, err := client.NewEnvClient()
-	if err != nil {
-		log.Debug("\n")
-    log.Fatal(err)
-	}
-
   log.Info("Has compatible docker version...")
-  err = checkDockerVersion(c)
+  err := checkDockerVersion(b.Client)
   if ok := log.Done(err); !ok {
-    log.Warn("Orca needs Docker >= 17.05 to build images.")
-    log.Fatal(err)
+    log.Errorf("Orca needs Docker %s to build images.", MinDockerVersion)
+    return err
   }
 
   log.Info("Has base image...")
-  err = checkBaseImageExists(cfg, c)
+  err = checkBaseImageExists(opts, b.Client)
   if ok := log.Done(err); !ok {
-    closestMatch, _ := getClosestMatch(cfg, c)
+    closestMatch, _ := getClosestMatch(opts, b.Client)
     res := log.Promptf(log.YESNO, "Did you mean %s?", closestMatch)
     if log.FormatResponse(res) == log.YES {
-      cfg.Set("base", closestMatch)
+      b.Config.Base = closestMatch
     }
     //
-    // NOTE: Prompt the user for confirmation. If yes, use the matched image.
     // NOTE: Perhaps try and download the image from Docker Hub?
     //
-    log.Fatal(err)
+    return err
   }
 
   log.Info("Has valid Dockerfile...")
-  err = checkDockerfileExists(cfg)
+  err = checkDockerfileExists(opts)
   if ok := log.Done(err); !ok {
-    log.Fatal(err)
+    return err
   }
 
   log.Info("Has valid includes...")
-  err = checkIncludeFilesExist(cfg)
+  err = checkIncludeFilesExist(opts)
   if ok := log.Done(err); !ok {
-    log.Fatal(err)
+    return err
   }
+
+  return nil
 }
 
-func checkDockerVersion(c *client.Client) (err error) {
-  minVer, err := semver.NewConstraint(">= 17.05.*-ce")
+func checkDockerVersion(c *client.Client) error {
+  minVer, err := semver.NewConstraint(MinDockerVersion)
   if err != nil {
-    return
+    return err
   }
 
   currentVer, err := getServerVersion(c)
   if err != nil {
-    return
+    return err
   }
 
   v, _ := semver.NewVersion(currentVer)
@@ -75,29 +70,29 @@ func checkDockerVersion(c *client.Client) (err error) {
     err = fmt.Errorf("Invalid Docker version.\n")
   }
 
-  return
+  return nil
 }
 
-func checkBaseImageExists(cfg *viper.Viper, c *client.Client) (err error) {
-  base := cfg.GetString("base")
+func checkBaseImageExists(opts *BuildOptions, c *client.Client) error {
+  base := opts.Base
   if base == "scratch" {
-    return
+    return nil
   }
 
   imageTags, err := getImages(c)
   for _, tag := range imageTags {
     if base == tag {
-      return
+      return err
     }
   }
 
   err = fmt.Errorf("Invalid base image.\n")
 
-  return
+  return nil
 }
 
-func getClosestMatch(cfg *viper.Viper, c *client.Client) (match string, err error) {
-  base := cfg.GetString("base")
+func getClosestMatch(opts *BuildOptions, c *client.Client) (match string, err error) {
+  base := opts.Base
 
   imageTags, err := getImages(c)
 
@@ -168,26 +163,24 @@ func levDist(str1, str2 string, ch chan int) {
 	ch <- matrix[len(str1)][len(str2)]
 }
 
-func checkDockerfileExists(cfg *viper.Viper) (err error) {
-  df := cfg.GetString("dockerfile")
+func checkDockerfileExists(opts *BuildOptions) error {
+  absPath, _ := filepath.Abs(opts.Dockerfile)
 
-  absPath, _ := filepath.Abs(df)
+  if _, err := os.Stat(absPath); os.IsNotExist(err) {
+    return err
+  }
 
-  _, err = os.Stat(absPath)
-
-  return
+  return nil
 }
 
-func checkIncludeFilesExist(cfg *viper.Viper) (err error) {
-  includeFiles := cfg.GetStringSlice("include")
-
-  for _, file := range includeFiles {
+func checkIncludeFilesExist(opts *BuildOptions) error {
+  for _, file := range opts.Includes {
     absPath, _ := filepath.Abs(file)
 
-    if _, err = os.Stat(absPath); err != nil {
-      return
+    if _, err := os.Stat(absPath); os.IsNotExist(err) {
+      return err
     }
   }
 
-  return
+  return nil
 }

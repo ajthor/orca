@@ -3,25 +3,9 @@ package builder
 import (
   "context"
 
-  "io/ioutil"
-
-  log "github.com/gorobot-library/orca/logger"
-
   "github.com/docker/docker/api/types"
   "github.com/docker/docker/client"
 )
-
-func createTempdir() string {
-  // Create a temporary directory. Default is /tmp/buildXXXXXXXXX
-  dir, err := ioutil.TempDir("", "build")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-  log.Debugf("---> %s", dir)
-
-  return dir
-}
 
 func getServerVersion(c *client.Client) (ver string, err error) {
   v, err := c.ServerVersion(context.Background())

@@ -1,22 +1,13 @@
 package checksum
 
 import (
-  "bytes"
   "io"
   "os"
-  "path"
-
 
   "net/http"
-  "net/url"
-  "html/template"
-
-  log "github.com/gorobot-library/orca/logger"
-
-  "github.com/spf13/viper"
 )
 
-func downloadFile(uri string, dest string) (err error) {
+func (c *Checksum) downloadFile(uri string, dest string) (err error) {
   // Create a dummy file to copy the bytes to.
   out, err := os.Create(dest)
   if err != nil {
@@ -47,46 +38,4 @@ func downloadFile(uri string, dest string) (err error) {
 	}
 
   return
-}
-
-func GetFilename(cfg *viper.Viper, version string) string {
-  file := cfg.GetString("file")
-
-  // Create the template that we will use.
-  // t := template.New("")
-  type Version struct {
-    Version string
-  }
-
-  // funcMap := template.FuncMap{
-  //   "version": version,
-  // }
-  t, err := template.New("").Parse(file)
-  if err != nil {
-		log.Fatal(err)
-	}
-
-  var tpl bytes.Buffer
-
-  // Template the filename using the version.
-  if err := t.Execute(&tpl, Version{version}); err != nil {
-    log.Fatal(err)
-  }
-
-  return tpl.String()
-
-}
-
-func GetURI(cfg *viper.Viper, fn string) string {
-  mirror := cfg.GetString("mirror")
-
-  // Generate the URL for the download.
-  u, err := url.Parse(mirror)
-  if err != nil {
-		log.Fatal(err)
-	}
-
-  u.Path = path.Join(u.Path, fn)
-
-  return u.String()
 }

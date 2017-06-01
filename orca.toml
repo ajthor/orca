@@ -12,7 +12,7 @@ mirror = "http://gorobot.io/orca/releases"
 
 [build]
 base = "scratch"
-tags = ["robolib/orca:0.0.1"]
+tags = ["gorobot/orca:0.0.1"]
 dockerfile = "./Dockerfile"
 version = "0.0.1"
 includes = []

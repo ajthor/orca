@@ -8,31 +8,10 @@ import (
   "github.com/spf13/viper"
 )
 
-type BuildInfo struct {
-  base            string
-  version         string
-  externalFiles   []string
-}
-
-type RemoteInfo struct {
-  url             string
-  fileName        string
-}
-
-type ChecksumInfo struct {
-  versions        []string
-}
-
-type Config struct {
-  build           BuildInfo       `mapstructure:"build"`
-  remote          RemoteInfo      `mapstructure:"remote"`
-  checksum        ChecksumInfo    `mapstructure:"checksum"`
-}
-
 // Read in the configuration file. Will usually be specified as orca.toml, but
 // viper supports JSON and YAML files, as well.
-func NewConfig(configName string) (*viper.Viper, error) {
-  cfg := viper.New()
+func New(configName string) (cfg *viper.Viper, err error) {
+  cfg = viper.New()
 
   // The name of the configuration file, without extensions.
   cfg.SetConfigName(configName)
@@ -43,16 +22,12 @@ func NewConfig(configName string) (*viper.Viper, error) {
 
   // Actually read in the configuration. Once we have read the configuration,
   // we can access members of the config using viper.Get()
-  if err := cfg.ReadInConfig(); err != nil {
-    return nil, err
+  err = cfg.ReadInConfig()
+  if err != nil {
+    return
   }
-  // err := cfg.Unmarshal(&config)
-  // if err != nil {
-  //   fmt.Println("Could not unmarshal configuration.")
-  // 	log.Fatal("Syntax error in configuration file.")
-  // }
 
-  return cfg, nil
+  return
 }
 
 func HasRequired(cfg *viper.Viper, requiredFields []string) error {
@@ -63,15 +38,4 @@ func HasRequired(cfg *viper.Viper, requiredFields []string) error {
   }
 
   return nil
-}
-
-func SetConfigWatch(cfg *viper.Viper) {
-
-  // Call a function which handles configuration changes during the program
-  // execution. Likely, this will not be an issue, but if a person leaves the
-  // orca container running, the configuration file may change.
-  // viper.WatchConfig()
-	// viper.OnConfigChange(func(e fsnotify.Event) {
-	// 	fmt.Println("Config file changed:", e.Name)
-	// })
 }
