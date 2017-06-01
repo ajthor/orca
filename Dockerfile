@@ -62,7 +62,8 @@ WORKDIR $DISTRIBUTION_DIR
 RUN git clone https://github.com/gorobot-library/orca .
 
 # Get Go dependencies.
-RUN glide install
+RUN glide install \
+ && go get -u github.com/jteeuwen/go-bindata/...
 
 # Build the binary.
 RUN go generate ./initialize \

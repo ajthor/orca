@@ -1,6 +1,7 @@
 .PHONY: all
 
-ORCA_IMAGE := "gorobot/orca"
+ORCA_VERSION := 0.0.1
+ORCA_IMAGE := gorobot/orca:$(ORCA_VERSION)
 ORCA_DEV_IMAGE := gorobot/orca:dev
 
 ALPINE_ARCH := armhf
@@ -12,12 +13,16 @@ ALPINE_DOWNLOAD_URL := $(ALPINE_MIRROR)/$(ALPINE_DIST)/releases/$(ALPINE_ARCH)/$
 
 DOCKER_DEV_OPTS := --rm -it -v "$$PWD:/go/src/github.com/gorobot-library/orca" -v "/var/run/docker.sock:/var/run/docker.sock" --name dev
 
-DOCKER_RUN_OPTS := --rm -it -v "/var/run/docker.sock:/var/run/docker.sock"
-DOCKER_RUN := docker run $(DOCKER_RUN_ORCA_OPTS) $(ORCA_IMAGE)
+DOCKER_RUN_OPTS := --rm -it -v "$$PWD:/orca" -v "/var/run/docker.sock:/var/run/docker.sock"
+DOCKER_RUN := docker run $(DOCKER_RUN_OPTS) $(ORCA_IMAGE)
 
 default: build
 
 all: build
+
+# running_in_docker() {
+#   awk -F/ '$2 == "docker"' /proc/self/cgroup | read
+# }
 
 alpine:
 	if [ ! -e "rootfs.tar.gz" ]; then \
@@ -37,4 +42,4 @@ clean:
 	rm -f rootfs.tar.gz
 
 shell: build
-	$(DOCKER_RUN) sh
+  $(DOCKER_RUN) sh

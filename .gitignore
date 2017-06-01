@@ -28,3 +28,6 @@ rootfs.tar.gz
 
 # Vendor Files
 /vendor
+
+# Go Generated files.
+assets.go
