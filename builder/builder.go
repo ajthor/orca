@@ -15,13 +15,12 @@ import (
 
   "io/ioutil"
 
-  log "github.com/gorobot-library/orca/logger"
-
   "github.com/docker/docker/api/types"
   "github.com/docker/docker/client"
   "github.com/docker/docker/pkg/archive"
 	"github.com/docker/docker/pkg/jsonmessage"
 	"github.com/docker/docker/pkg/term"
+  log "github.com/gorobot/robologger"
 )
 
 // This may be generalized in the future to an interface that spans the entire

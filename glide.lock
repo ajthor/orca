@@ -1,5 +1,5 @@
-hash: 89f8d03245338188779cece1024de8d5557b5eb3edcc29ee1a0ff83dab17dce2
-updated: 2017-05-31T21:44:36.337154253Z
+hash: 3dfdf0206cef3ea2927b5621796c11cda31769d749619905266250fad6caa6b0
+updated: 2017-06-03T19:13:52.502525879Z
 imports:
 - name: github.com/Azure/go-ansiterm
   version: fa152c58bc15761d0200cb75fe958b89a9d4888e
@@ -54,6 +54,8 @@ imports:
   version: aabc10ec26b754e797f9028f4589c5b7bd90dc20
 - name: github.com/fsnotify/fsnotify
   version: 4da3e2cfbabc9f751898f250b49f2439785783a1
+- name: github.com/gorobot/robologger
+  version: 3bfc70fe764740010093d97ccbf0f9656ceb8e93
 - name: github.com/hashicorp/hcl
   version: 392dba7d905ed5d04a5794ba89f558b27e2ba1ca
   subpackages:
@@ -84,14 +86,14 @@ imports:
 - name: github.com/opencontainers/go-digest
   version: eaa60544f31ccf3b0653b1a118b76d33418ff41b
 - name: github.com/opencontainers/runc
-  version: a6906d5a531abb739adcf82f95eb4c7205822562
+  version: 37234959723df2627fb3a22f174f01378f37fb7e
   subpackages:
   - libcontainer/system
   - libcontainer/user
 - name: github.com/pelletier/go-buffruneio
   version: c37440a7cf42ac63b919c752ca73a85067e05992
 - name: github.com/pelletier/go-toml
-  version: 5ccdfb18c776b740aecaf085c4d9a2779199c279
+  version: fe7536c3dee2596cdd23ee9976a17c22bdaae286
 - name: github.com/pkg/errors
   version: c605e284fe17294bda444b34710735b29d1a9d90
 - name: github.com/Sirupsen/logrus
@@ -111,7 +113,7 @@ imports:
 - name: github.com/spf13/viper
   version: 0967fc9aceab2ce9da34061253ac10fb99bba5b2
 - name: golang.org/x/net
-  version: 3da985ce5951d99de868be4385f21ea6c2b22f24
+  version: e4fa1c5465ad6111f206fc92186b8c83d64adbe1
   subpackages:
   - context
   - context/ctxhttp
@@ -122,7 +124,7 @@ imports:
   - unix
   - windows
 - name: golang.org/x/text
-  version: 4ee4af566555f5fbe026368b75596286a312663a
+  version: ccbd3f7822129ff389f8ca4858a9b9d4d910531c
   subpackages:
   - transform
   - unicode/norm

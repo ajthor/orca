@@ -24,7 +24,7 @@ RUN apk add --no-cache \
  && apk del .build-deps
 
 {{if .HasEntrypoint -}}
-COPY docker-entrypoint.sh /usr/local/bin/
+COPY docker-entrypoint.sh /
 ENTRYPOINT ["docker-entrypoint.sh"]
 {{- end -}}
 

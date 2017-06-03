@@ -2,8 +2,8 @@ package main
 
 import (
   "github.com/gorobot-library/orca/cli"
-  log "github.com/gorobot-library/orca/logger"
 
+  log "github.com/gorobot/robologger"
   "github.com/spf13/cobra"
 )
 

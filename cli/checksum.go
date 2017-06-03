@@ -3,8 +3,8 @@ package cli
 import (
   "github.com/gorobot-library/orca/checksum"
   "github.com/gorobot-library/orca/config"
-  log "github.com/gorobot-library/orca/logger"
 
+  log "github.com/gorobot/robologger"
   "github.com/spf13/cobra"
 )
 

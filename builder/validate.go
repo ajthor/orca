@@ -6,10 +6,10 @@ import (
 
   "path/filepath"
 
-  log "github.com/gorobot-library/orca/logger"
 
   "github.com/docker/docker/client"
   "github.com/Masterminds/semver"
+  log "github.com/gorobot/robologger"
 )
 
 var MinDockerVersion string = ">= 17.05.*-ce"
@@ -17,19 +17,22 @@ var MinDockerVersion string = ">= 17.05.*-ce"
 func (b *Builder) Validate(opts *BuildOptions) error {
   log.Info("Checking configuration...")
 
-  log.Info("Has compatible docker version...")
+  m1 := log.Info("Has compatible docker version...")
   err := checkDockerVersion(b.Client)
-  if ok := log.Done(err); !ok {
+  if err != nil {
+    log.Status(log.ERR, m1)
     log.Errorf("Orca needs Docker %s to build images.", MinDockerVersion)
     return err
   }
+  log.Status(log.OK, m1)
 
-  log.Info("Has base image...")
+  m2 := log.Info("Has base image...")
   err = checkBaseImageExists(opts, b.Client)
-  if ok := log.Done(err); !ok {
+  if err != nil {
     closestMatch, _ := getClosestMatch(opts, b.Client)
     res := log.Promptf(log.YESNO, "Did you mean %s?", closestMatch)
-    if log.FormatResponse(res) == log.YES {
+    pres, _ := log.ParseResponse(res)
+    if pres == log.YES {
       b.Config.Base = closestMatch
     }
     //
@@ -37,18 +40,24 @@ func (b *Builder) Validate(opts *BuildOptions) error {
     //
     return err
   }
+  log.Status(log.OK, m2)
 
-  log.Info("Has valid Dockerfile...")
+  m3 := log.Info("Has valid Dockerfile...")
   err = checkDockerfileExists(opts)
-  if ok := log.Done(err); !ok {
+  if err != nil {
+    log.Status(log.ERR, m3)
     return err
   }
+  log.Status(log.OK, m2)
 
-  log.Info("Has valid includes...")
+
+  m4 := log.Info("Has valid includes...")
   err = checkIncludeFilesExist(opts)
-  if ok := log.Done(err); !ok {
+  if err != nil {
+    log.Status(log.ERR, m4)
     return err
   }
+  log.Status(log.OK, m4)
 
   return nil
 }

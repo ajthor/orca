@@ -4,8 +4,8 @@ import (
   "os"
 
   "github.com/gorobot-library/orca/initialize"
-  log "github.com/gorobot-library/orca/logger"
 
+  log "github.com/gorobot/robologger"
   "github.com/spf13/cobra"
 )
 
@@ -21,9 +21,8 @@ var initCmd = &cobra.Command{
       log.Warn("Configuration file found.")
       log.Warn("Config file will be overwritten. This cannot be undone.")
       res := log.Prompt(log.YESNO, "Do you want to continue?")
-      log.ShowInput(res)
 
-      fres := log.FormatResponse(res)
+      fres, _ := log.ParseResponse(res)
       if fres != log.YES {
         return
       }

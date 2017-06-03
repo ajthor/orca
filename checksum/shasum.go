@@ -10,7 +10,7 @@ import (
   "crypto/sha256"
   "path/filepath"
 
-  log "github.com/gorobot-library/orca/logger"
+  log "github.com/gorobot/robologger"
 )
 
 func (c *Checksum) GetShasum(match string) (shasum string, err error) {
@@ -64,13 +64,12 @@ func (c *Checksum) CreateShasumFile(hashes []string) error {
   // Check if the file exists, and remove it if it does.
   if _, err := os.Stat(*c.ShaFile); err == nil {
     res := log.Promptf(log.YESNO, "%s already exists. Overwrite?", *c.ShaFile)
-    log.ShowInput(res)
 
-    fres := log.FormatResponse(res)
+    fres, _ := log.ParseResponse(res)
     if fres != log.YES {
       return fmt.Errorf("Canceling...")
     }
-    
+
     if err := os.Remove(*c.ShaFile); err != nil {
       return err
     }

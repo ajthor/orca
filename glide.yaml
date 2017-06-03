@@ -13,3 +13,4 @@ import:
 - package: github.com/Masterminds/semver
 - package: github.com/logrusorgru/aurora
 - package: github.com/jteeuwen/go-bindata
+- package: github.com/gorobot/robologger

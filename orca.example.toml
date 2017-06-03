@@ -18,7 +18,9 @@ mirror = "http://gorobot.io/orca/releases"
 file = "orca-{{.Version}}.tar.gz"
 
 # A sample resulting filename with the above two values would be:
-#   http://github.com/download/sample-0.1.2.tar.gz
+#
+#   http://gorobot.io/orca/releases/orca-0.1.2.tar.gz
+#
 
 [build]
 # base

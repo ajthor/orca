@@ -8,13 +8,13 @@ import (
   "path/filepath"
   "text/template"
 
-  log "github.com/gorobot-library/orca/logger"
+  log "github.com/gorobot/robologger"
 )
 
 func GenerateConfigFile(data *TemplateData) {
   log.Info("Creating orca.toml...")
 
-  err := templateFile("./initialize/templates/orca.toml.tmpl", "orca.toml", data)
+  err := templateFile("templates/orca.toml.tmpl", "orca.toml", data)
   if err != nil {
     log.Fatal(err)
   }
@@ -32,7 +32,7 @@ func GenerateProjectFiles(data *TemplateData) {
   }
 
   if data.HasEntrypoint {
-    tpl = "./initialize/templates/docker-entrypoint.sh.tmpl"
+    tpl = "templates/docker-entrypoint.sh.tmpl"
     err := templateFile(tpl, "docker-entrypoint.sh", data)
     if err != nil {
       log.Fatal(err)
@@ -49,22 +49,16 @@ func GetTemplateData() *TemplateData {
   log.Info("Let's get some basic information about your project:")
 
   name := getName()
-  log.ShowInput(name)
 
   base := getBase()
-  log.ShowInput(base)
 
   version := getVersion()
-  log.ShowInput(version)
 
   tag := getTag()
-  log.ShowInput(tag)
 
   mirror := getRemoteMirror()
-  log.ShowInput(mirror)
 
   file := getRemoteFile()
-  log.ShowInput(file)
 
   hasEntrypoint := getHasEntrypoint()
 
@@ -83,7 +77,7 @@ func GetTemplateData() *TemplateData {
 
 func getName() string {
   defaultName := "project"
-  name := log.Promptf(log.DEFAULT, "Project name (%s):", defaultName)
+  name := log.Promptf(log.STRING, "Project name (%s):", defaultName)
   if name == "" {
     name = defaultName
   }
@@ -93,7 +87,7 @@ func getName() string {
 
 func getBase() string {
   defaultBase := "scratch"
-  base := log.Promptf(log.DEFAULT, "Base image (%s):", defaultBase)
+  base := log.Promptf(log.STRING, "Base image (%s):", defaultBase)
   if base == "" {
     base = defaultBase
   }
@@ -103,7 +97,7 @@ func getBase() string {
 
 func getVersion() string {
   defaultVersion := "0.0.1"
-  version := log.Promptf(log.DEFAULT, "Version (%s):", defaultVersion)
+  version := log.Promptf(log.STRING, "Version (%s):", defaultVersion)
   if version == "" {
     version = defaultVersion
   }
@@ -112,22 +106,21 @@ func getVersion() string {
 }
 
 func getTag() string {
-  return log.Prompt(log.DEFAULT, "Docker tag (e.g. repository/image:tag):")
+  return log.Prompt(log.STRING, "Docker tag (e.g. repository/image:tag):")
 }
 
 func getRemoteMirror() string {
-  return log.Prompt(log.DEFAULT, "Remote mirror (e.g. http://github.com/download/):")
+  return log.Prompt(log.STRING, "Remote mirror (e.g. http://github.com/download/):")
 }
 
 func getRemoteFile() string {
-  return log.Promptf(log.DEFAULT, "Remote file (e.g. sample-{{.Version}}.tar.gz):")
+  return log.Promptf(log.STRING, "Remote file (e.g. sample-{{.Version}}.tar.gz):")
 }
 
 func getHasEntrypoint() bool {
   res := log.Prompt(log.YESNO, "Does your Dockerfile have an entrypoint?")
-  log.ShowInput(res)
 
-  fres := log.FormatResponse(res)
+  fres, _ := log.ParseResponse(res)
   if fres == log.YES {
     return true
   }
@@ -154,9 +147,8 @@ func templateFile(srcPath, destPath string, data interface{}) (err error) {
 
   if _, err = os.Stat(path); err == nil {
     res := log.Promptf(log.YESNO, "%s already exists. Overwrite?", path)
-    log.ShowInput(res)
 
-    fres := log.FormatResponse(res)
+    fres, _ := log.ParseResponse(res)
     if fres != log.YES {
       return
     }

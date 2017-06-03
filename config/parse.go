@@ -8,6 +8,24 @@ import (
   "text/template"
 )
 
+// func GetFilenames(mirror, file string, versions []string) ([]string, error) {
+//   files := make([]string, len(versions))
+//
+//   for i, ver := range versions {
+//     fn, err := ParseFilename(file, ver)
+//     if err != nil {
+//       return files, err
+//     }
+//
+//     files[i], err = ParseURL(mirror, fn)
+//     if err != nil {
+//       return files, err
+//     }
+//   }
+//
+//   return files, nil
+// }
+
 // Template the filename with the version.
 func ParseFilename(file string, version string) (string, error) {
   data := struct {

@@ -14,7 +14,6 @@ ALPINE_DOWNLOAD_URL := $(ALPINE_MIRROR)/$(ALPINE_DIST)/releases/$(ALPINE_ARCH)/$
 DOCKER_DEV_OPTS := --rm -it -v "$$PWD:/go/src/github.com/gorobot-library/orca" -v "/var/run/docker.sock:/var/run/docker.sock" --name dev
 
 DOCKER_RUN_OPTS := --rm -it -v "$$PWD:/orca" -v "/var/run/docker.sock:/var/run/docker.sock"
-DOCKER_RUN := docker run $(DOCKER_RUN_OPTS) $(ORCA_IMAGE)
 
 default: build
 
@@ -42,4 +41,4 @@ clean:
 	rm -f rootfs.tar.gz
 
 shell: build
-  $(DOCKER_RUN) sh
+	docker run $(DOCKER_RUN_OPTS) $(ORCA_IMAGE) sh

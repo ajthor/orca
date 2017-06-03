@@ -7,7 +7,8 @@ import (
   "path/filepath"
 
   "github.com/gorobot-library/orca/config"
-  log "github.com/gorobot-library/orca/logger"
+
+  log "github.com/gorobot/robologger"
 )
 
 var ShasumDefaultFile string = "SHASUMS256.txt"
@@ -92,7 +93,7 @@ func (c *Checksum) GenerateHashes(opts *ChecksumOptions) ([]string, error) {
     dlFile := filepath.Join(*c.Directory, file)
 
     err = c.downloadFile(uri, dlFile)
-    if ok := log.Done(err); !ok {
+    if err != nil {
       return hashes, err
     }
 
@@ -103,7 +104,7 @@ func (c *Checksum) GenerateHashes(opts *ChecksumOptions) ([]string, error) {
     // Generate the shasum.
     log.Info("Generating hash...")
     hashes[i] = c.GenerateShasum(dlFile)
-    if ok := log.Done(err); !ok {
+    if err != nil {
       return hashes, err
     }
   }
