@@ -17,7 +17,7 @@ func newCLICommand() *cobra.Command {
     }
 
   // Perform initialization steps, such as attaching commands to the root
-  // command. Commands and initialization are handled by the cli/cli.go file.
+  // command. Commands and initialization are handled by the `cli/cli.go` file.
   cli.SetupCLIRootCmd(cmd)
 
   return cmd

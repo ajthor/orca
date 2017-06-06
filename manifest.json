@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "manifests": [
+    {
+      "name": "orca",
+      "repo": "gorobot",
+      "registry": "127.0.0.1",
+      "dockerfile": "Dockerfile",
+      "files": [
+        "docker-entrypoint.sh"
+      ],
+      "remote": {
+        "mirror": "http://github.com",
+        "file": "file-{{.Version}}.tar.gz"
+      },
+      "versions": [
+        "0.0.1", "0.0.2", "0.0.3"
+      ],
+      "platform": {
+        "architecture": "armhf",
+        "os": "linux"
+      }
+    }
+  ]
+}
