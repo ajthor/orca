@@ -6,6 +6,7 @@
       "repo": "gorobot",
       "registry": "127.0.0.1",
       "dockerfile": "Dockerfile",
+      "baseImage": "scratch",
       "files": [
         "docker-entrypoint.sh"
       ],

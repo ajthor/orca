@@ -1,7 +1,8 @@
 package client
 
 import (
-  "bufio"
+  // "bufio"
+  "errors"
   "fmt"
   "io"
   "os"
@@ -16,32 +17,33 @@ import (
   log "github.com/gorobot/robologger"
 )
 
+var (
+  ErrInvalidHttpResponse = errors.New("Invalid http response.")
+)
+
 // GenerateShasums takes a manifest and generates shasums for the files and
 // versions specified in the file.
-func (c *Client) GenerateShasums(files, urls []string) ([]string, error) {
-  log.Infof("Generating shasums...")
-
+func (c *Client) GenerateShasums(files, urls []string) ([]*Shasum, error) {
   // Create an empty slice to hold our generated shasums.
-  hashes := make([]string, len(files))
+  hashes := make([]*Shasum, len(files))
 
-  dir, err := c.makeTempDirectory("shasums")
-  if err != nil {
-    return hashes, err
-  }
+  dir := tempdir("", "downloads")
 
   for i, dlurl := range urls {
     dlfile := filepath.Join(dir, files[i])
 
+    // Create an empty file to copy the bytes to.
+    dest := mustCreate(dlfile)
+    defer dest.Close()
+
     // Download the file to the temporary directory.
-    err := c.DownloadFile(dlfile, dlurl)
+    err := downloadFile(dlurl, dest)
     if err != nil {
       return hashes, err
     }
 
-    log.Debugf("---> %s", dlfile)
-
-    // Generate a hash for the downloaded file.
-    hashes[i], err = c.CreateSha256(dlfile)
+    // Create a shasum for the downloaded file.
+    hashes[i], err = NewShasum(dlfile)
     if err != nil {
       return hashes, err
     }
@@ -50,46 +52,135 @@ func (c *Client) GenerateShasums(files, urls []string) ([]string, error) {
   return hashes, nil
 }
 
-// downloader wraps the io.ReadCloser returned from the http.Get function so
-// that we can display a progress bar alongside the download. To accomplish
+// Shasum is an interface for all shasum types used in this file. Shasums in this context are at least sha256.
+type shasum interface {
+  fmt.Stringer
+  File()
+  Hash()
+  Generate()
+}
+
+type Shasum struct {
+  raw string
+}
+
+// NewShasum returns a new Shasum. If the string is a filepath, the
+// function attempts to generate a shasum.
+func NewShasum(s string) (*Shasum, error) {
+  if ok := ValidateShasum(s); !ok {
+    return nil, ErrInvalidHash
+  }
+
+  absPath, _ := filepath.Abs(s)
+
+  // If the string is a file and it exists, we generate a hash for the file.
+  if _, err := os.Stat(absPath); os.IsExist(err) {
+    sum, err := GenerateShasum(s)
+    if err != nil {
+      return nil, err
+    }
+
+    return sum, nil
+  }
+
+  return &Shasum{
+    raw: s,
+  }, nil
+}
+
+// GenerateShasum reads in the file specified as a parameter and returns a
+// pointer to a new Shasum.
+func GenerateShasum(file string) (*Shasum, error) {
+  f := mustOpen(file)
+  defer f.Close()
+
+  // CreateShasum the hash.
+  h := sha256.New()
+  if _, err := io.Copy(h, f); err != nil {
+    return nil, err
+  }
+
+  // The hash line is a combination of the hash, two spaces, and the filename.
+  shasum := fmt.Sprintf("%x", h.Sum(nil)) + "  " + filepath.Base(file)
+
+  sum := &Shasum{
+    raw: shasum,
+  }
+
+  return sum, nil
+}
+
+// ValidateShasum does rudimentary checking to ensure that the hash read from a
+// file is in the correct format.
+func ValidateShasum(h string) bool {
+  // Makes sure that the string contains a double space.
+  if contains := strings.Contains(h, "  "); !contains {
+    return false
+  }
+
+  // Make sure that the length of a string split around a double space is two.
+  s := strings.Split(h, "  ")
+  if stringLen := len(s); stringLen != 2 {
+    return false
+  }
+
+  // Checks to make sure the hash is at least 64 bytes long.
+  if hashLen := len(s[0]); hashLen >= 64 {
+    return false
+  }
+
+  return true
+}
+
+// String returns a string representation of the full hash, i.e. (hash + "  " +
+// file).
+func (s *Shasum) String() string {
+  return s.raw
+}
+
+// Hash returns the hash only.
+func (s *Shasum) Hash() string {
+  return strings.Split(s.raw, "  ")[0]
+}
+
+// File returns the filename only.
+func (s *Shasum) File() string {
+  return strings.Split(s.raw, "  ")[1]
+}
+
+// fileDownloader wraps the io.ReadCloser returned from the http.Get function
+// so that we can display a progress bar alongside the download. To accomplish
 // this, we incorporate our own 'Read' and 'Close' methods for the ReadCloser
 // interface.
-type downloader struct {
+type fileDownloader struct {
   io.ReadCloser
   Total int64
-  ContentLength int64
+  resp *http.Response
   Update func(int, interface{})
 }
 
-func (dl *downloader) Read(p []byte) (int, error) {
+func (dl *fileDownloader) Read(p []byte) (int, error) {
   n, err := dl.ReadCloser.Read(p)
   dl.Total += int64(n)
 
   if err == nil {
-    dl.Update(int(100 * (float32(dl.Total) / float32(dl.ContentLength))), "downloading...")
+    dl.Update(int(100 * (float32(dl.Total) / float32(dl.resp.ContentLength))), "downloading...")
   }
 
   return n, err
 }
 
-func (dl *downloader) Close() error {
+// Close closes the fileDownloader reader.
+func (dl *fileDownloader) Close() error {
   return dl.ReadCloser.Close()
 }
 
-// DownloadFile fetches the file from the
-func (c *Client) DownloadFile(dlfile string, dlurl string) error {
-  // Create a dummy file to copy the bytes to.
-  out, err := os.Create(dlfile)
-  if err != nil {
-    return err
-  }
-
-  defer out.Close()
-
-  log.Infof("Downloading %s...", dlurl)
+// downloadFile fetches the file from `url` and saves it to the file specified by `name`.
+func downloadFile(url string, file *os.File) error {
+  m := log.Infof("Downloading %s...", url)
 
   // Get the file from the download URL.
-  r, err := http.Get(dlurl)
+  r, err := http.Get(url)
   if err != nil {
     return err
   }
@@ -98,193 +189,62 @@ func (c *Client) DownloadFile(dlfile string, dlurl string) error {
 
   // If the response from the server is not 200 (OK), we have an error in the
   // file download and return an error.
-  if r.StatusCode != 200 {
-    return fmt.Errorf("Could not download %s [%d]", dlurl, r.StatusCode)
+  if err := checkHttpResponse(r.StatusCode); err != nil {
+    return err
   }
 
   Update := log.Progress()
 
-  dl := &downloader{
+  dl := &fileDownloader{
     ReadCloser: r.Body,
-    ContentLength: r.ContentLength,
+    resp: r,
     Update: Update,
   }
 
   // Copy the file, byte by byte to the temporary file. This allows us to
   // download large files and not eat up memory.
-  _, err = io.Copy(out, dl)
+  _, err = io.Copy(file, dl)
   if err != nil {
     return err
   }
 
   Update(100, "done")
+  log.Status(log.OK, m)
 
   return nil
 }
 
-// CreateSha256 reads in the file specified as a parameter and generates a
-// sha256 hash of the form: `shasum  file.tar.gz`
-func (c *Client) CreateSha256(file string) (string, error) {
-  f, err := os.Open(file)
-  if err != nil {
-    return "", err
+// checkHttpResponse uses the response received from the http.Get function and
+// determines if it is alright to continue the download.
+func checkHttpResponse(code int) error {
+  switch {
+  case code == 200:
+    return nil
+  // Place all invalid responses here with a fallthrough to the error.
+  default:
+    fallthrough
+  case code >= 400:
+    return ErrInvalidHttpResponse
   }
-
-  defer f.Close()
-
-  // Generate the hash.
-  h := sha256.New()
-  _, err = io.Copy(h, f)
-  if err != nil {
-    return "", err
-  }
-
-  // The hash line is a combination of the hash, two spaces, and the filename.
-  shasum := fmt.Sprintf("%x", h.Sum(nil)) + "  " + filepath.Base(file)
-
-  return shasum, nil
 }
 
-// GetSha256 takes the filename specified as a parameter and searches the
-// SHASUM256.txt file for a matching filename. If one is found, it returns the
-// entire line in the file.
-func (c *Client) GetSha256(file string, match string) (string, error) {
-  // Get all hashes from the shasum file.
-  hashes, err := c.ReadShasumFile(file)
-  if err != nil {
-    return "", err
-  }
-
-  // Return a match if there is one.
-  for _, h := range hashes {
-    if contains := strings.Contains(h, match); contains {
-      return h, nil
-    }
-  }
-
-  return "", fmt.Errorf("Shasum not found.")
-}
-
-// ReadShasumFile reads in all of the hashes in the shasum file.
 //
-// Returns a string slice containing the hashes.
-func (c *Client) ReadShasumFile(file string) ([]string, error) {
-  hashes := []string{}
-
-  // Make sure file exists.
-  if _, err := os.Stat(file); os.IsNotExist(err) {
-    return hashes, err
-  }
-
-  f, err := os.Open(file)
-  if err != nil {
-    return hashes, err
-  }
-  defer f.Close()
-
-  // Create a new scanner to read the file line by line.
-  scanner := bufio.NewScanner(f)
-  for scanner.Scan() {
-    // Append the lines to the output variable, hashes.
-    hashes = append(hashes, scanner.Text())
-  }
-
-  // Check for errors in the scan.
-  if err := scanner.Err(); err != nil {
-    return hashes, err
-  }
-
-  return hashes, nil
-}
-
-// WriteShasumFile takes the hashes generated by the GenerateShasums function
-// and outputs them to a file. Typically, the file is "SHASUM256.txt", located
-// in the default directory. The shasum file will be overwritten if it already
-// exists.
+// // GetSha256 takes the filename specified as a parameter and searches the
+// // SHASUM256.txt file for a matching filename. If one is found, it returns the
+// // entire line in the file.
+// func (c *Client) GetSha256(file string, match string) (string, error) {
+//   // Get all hashes from the shasum file.
+//   hashes, err := c.ReadShasumFile(file)
+//   if err != nil {
+//     return "", err
+//   }
 //
-// If we want to ensure that the file is not overwritten, and that new hashes
-// are only added to the file, it is safer to use AppendShasumFile instead.
+//   // Return a match if there is one.
+//   for _, h := range hashes {
+//     if contains := strings.Contains(h, match); contains {
+//       return h, nil
+//     }
+//   }
 //
-// Returns an error if the file cannot be written.
-func (c *Client) WriteShasumFile(file string, hashes []string) error {
-  // Ensure the directory we are writing to exists and has the correct
-  // permissions.
-  c.makeDirectory(filepath.Dir(file))
-
-  // Recreate the file.
-  // f, err := os.OpenFile(file, os.O_RDWR|os.O_CREATE, 0644)
-  f, err := os.Create(file)
-  if err != nil {
-    return err
-  }
-
-  defer f.Close()
-
-  // And write the hashes to the file.
-  w := bufio.NewWriter(f)
-  defer w.Flush()
-
-  for _, h := range hashes {
-    _, err := w.WriteString(h + "\n")
-    if err != nil {
-      return err
-    }
-  }
-
-  log.Debugf("---> %s", file)
-
-  return nil
-}
-
-// AppendShasumFile takes hashes generated by the GenerateShasums function and
-// appends them to the shasum file if they are not already present.
-//
-// If there is a chance that the shasum file already exists, or we do not want
-// to take the cance of overwriting the shasum file, it is usually safer to
-// call this function instead of WriteShasumFile.
-func (c *Client) AppendShasumFile(file string, hashes []string) error {
-  // Get all hashes from the shasum file.
-  fileHashes, err := c.ReadShasumFile(file)
-  if err != nil {
-    // The file could not be read. We continue anyway, writing the hashes
-    // supplied to a new file.
-    return c.WriteShasumFile(file, hashes)
-  }
-
-  // We need to match the shasums based on the filenames. This way, we can
-  // check if there is a duplicate that needs to be replaced in the file,
-  // potentially updating the old shasum.
-  fn := make([]string, len(fileHashes))
-
-  // So we iterate over the hashes that were obtained from the file, in order
-  // to determine which ones we need to include in the new hashes we are trying
-  // to write.
-  for i, fh := range fileHashes {
-    // Store the filename of the old hash.
-    f := strings.Split(fh, "  ")[1]
-    fn[i] = f
-
-    // Defined here for scope.
-    var match bool
-
-    // Now, we need to check if the filename of the old has is in the slice of
-    // hashes we want to write. If it is not, we will include it in the hashes
-    // to write to the file.
-    for _, h := range hashes {
-      // If the old filename is found in one of the new hashes, we have a match
-      // and can stop looking. This hash will not be included in the file.
-      if contains := strings.Contains(h, fn[i]); contains {
-        match = true
-        break
-      }
-    }
-
-    // If there is no match, we include the old hash in the new hashes.
-    if !match {
-      hashes = append(hashes, fh)
-    }
-  }
-
-  // Lastly, we write the file using the merged hashes.
-  return c.WriteShasumFile(file, hashes)
-}
+//   return "", fmt.Errorf("Shasum not found.")
+// }

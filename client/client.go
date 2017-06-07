@@ -1,43 +1,43 @@
 package client
 
 import (
+  "errors"
   "os"
 
   "io/ioutil"
   "path/filepath"
 
-  // "github.com/gorobot-library/orca/manifest"
-
+  client "github.com/docker/docker/client"
   log "github.com/gorobot/robologger"
 )
 
-type Context struct {
-
-}
+var (
+  ErrClientOptionsNotDefined = errors.New("ClientOptions is not defined.")
+)
 
 type Client struct {
   ClientOptions
+
+  // Docker client. The Orca client relies heavily on the Docker client.
+  client *client.Client
 }
 
 type ClientOptions struct {
   // Points to the directory relative to the current directory where generated
-  // files will be placed. Is a pointer to a string so that we can
-  // differentiate between nil and an empty string.
+  // files will be placed. Must be *string so that we can differentiate between
+  // nil and an empty string.
   Directory *string
-  // Holds the path to the directory where we copy files to create the build
-  // context during `build` commands.
-  ContextDirectory *string
 }
 
-func New(opts *ClientOptions) *Client {
+func NewClient(client *client.Client, opts *ClientOptions) *Client {
   log.Info("Initializing Orca client.")
-
   if opts == nil {
-    log.Fatal("Cannot initialize client.")
+    log.Fatal(ErrClientOptionsNotDefined)
   }
 
   cli := &Client{
-    *opts,
+    ClientOptions: *opts,
+    client: client,
   }
 
   // Here, we check default values and update the client to handle if any
@@ -46,22 +46,11 @@ func New(opts *ClientOptions) *Client {
     log.Fatal(err)
   }
 
-  if cli.ContextDirectory == nil {
-    cdir, err := cli.makeTempDirectory("context")
-    if err != nil {
-      log.Fatal(err)
-    }
-    
-    cli.ContextDirectory = &cdir
-  }
-
   return cli
 }
 
 // Close performs steps necessary to close the client.
 func (c *Client) Close() error {
-  defer os.RemoveAll(*c.ContextDirectory)
-
   return nil
 }
 
@@ -71,44 +60,45 @@ func (c *Client) Close() error {
 //
 // Returns an error if the directory does not exist and cannot be created.
 func (c *Client) checkDirectory() error {
-  // If there is no directory supplied to the client, we need to create a
-  // directory to hold all generatetd files. Default to the current directory.
+  // If there is no directory supplied to the client, we default to the current
+  // working directory.
   if c.Directory == nil {
-    dir, _ := os.Getwd()
+    // If the file does not exist, we create it, along with any parent
+    // directories that are required.
+    dir, err := os.Getwd()
+    if err != nil {
+      return err
+    }
+
     c.Directory = &dir
   }
 
-  // Get the absolute path of the directory. If the directory specified is not
-  // an absolute directory, the `Abs` function joins the path with the current
-  // working directory to turn it into an absolute path.
-  absPath, _ := filepath.Abs(*c.Directory)
-
-  // If the file does not exist, we create it, along with any parent
-  // directories that are required.
-  if _, err := os.Stat(*c.Directory); os.IsNotExist(err) {
-    err := os.MkdirAll(*c.Directory, 0755)
-    if err != nil { return err }
-	}
-
-  c.Directory = &absPath
+  err := mkdir(*c.Directory)
+  if err != nil {
+    return err
+  }
 
   return nil
 }
 
-// makeDirectory creates a directory at the specified path with the proper
-// permissions. This function is a helper function that also ensures that the
-// permissions are acceptable to modify files in the directory. Default is
-// 0755.
-func (c *Client) makeDirectory(dir string) error {
+// mkdir is a helper function that creates a directory at the specified path
+// with the proper permissions. This function also ensures that the permissions
+// are acceptable to modify files in the directory. Default is 0755.
+func mkdir(path string) error {
+  // Get the absolute path of the directory. If the directory specified is not
+  // an absolute directory, the `Abs` function joins the path with the current
+  // working directory to turn it into an absolute path.
+  absPath, _ := filepath.Abs(path)
+
   // Make sure file exists and has correct permissions.
-  if stat, err := os.Stat(dir); os.IsExist(err) {
+  if stat, err := os.Stat(absPath); os.IsExist(err) {
     if stat.Mode() < 0755 {
-      if err := os.Chmod(dir, 0755); err != nil {
+      if err := os.Chmod(absPath, 0755); err != nil {
         return err
       }
     }
   } else {
-    if err := os.MkdirAll(dir, 0755); err != nil {
+    if err := os.MkdirAll(absPath, 0755); err != nil {
       return err
     }
   }
@@ -116,17 +106,44 @@ func (c *Client) makeDirectory(dir string) error {
   return nil
 }
 
-// makeTempDirectory creates a temporary directory and returns the directory
-// name. Accepts a prefix, which will be added to the temporary directory name.
+// tempdir is a helper function that creates a temporary directory and returns
+// the directory name. Accepts a prefix, which will be added to the temporary
+// directory name.
+//
 // Defaults to "/tmp/orcaXXXXXXXXX".
-func (c *Client) makeTempDirectory(prefix string) (string, error) {
+func tempdir(dir, prefix string) string {
   if prefix == "" {
     prefix = "orca"
   }
 
   // Create a temporary directory to hold all downloaded binaries.
   dir, err := ioutil.TempDir("", prefix)
+  if err != nil {
+    panic(err)
+  }
 
   log.Debugf("---> %s", dir)
-  return dir, err
+  return dir
+}
+
+// mustOpen is a helper function that wraps an os.Open function call and panics
+// if the error is non-nil.
+func mustOpen(name string) *os.File {
+  file, err := os.Open(name)
+  if err != nil {
+    panic(err)
+  }
+
+  return file
+}
+
+// mustOpen is a helper function that wraps an os.Open function call and panics
+// if the error is non-nil.
+func mustCreate(name string) *os.File {
+  file, err := os.Create(name)
+  if err != nil {
+    panic(err)
+  }
+
+  return file
 }

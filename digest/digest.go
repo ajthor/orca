@@ -1,10 +1,12 @@
 package digest
 
 import (
-  //"encoding/json"
+  "encoding/json"
 
   "github.com/gorobot-library/orca/config"
   log "github.com/gorobot/robologger"
+
+  "github.com/spf13/viper"
 )
 
 type Digest struct {
@@ -24,38 +26,25 @@ type DigestSchema struct {
 	Digests []Digest `json:"digests"`
 }
 
-type DigestFileOptions struct {
-  Path string
+func NewDigest() *DigestSchema {
+  return &DigestSchema{}
 }
 
-func LoadDigest(opts *DigestFileOptions) *DigestSchema {
-  cfg, err := config.New(opts.Path)
-  if err != nil {
-    log.Fatal(err)
-  }
-
-  req := []string{
-    "version",
-    "manifests",
-  }
-  if err := config.HasRequired(cfg, req); err != nil {
-    log.Fatal(err)
-  }
-
-  s := &DigestSchema{}
-
-  err = cfg.Unmarshal(s)
-  if err != nil {
-  	log.Fatalf("Unable to parse %s, %v", opts.Path, err)
-  }
-
-  return s
+// Marshal wraps a json.Marshal call on the digest.
+func (s *DigestShema) Marshal() ([]byte, error) {
+  return json.Marshal(s)
 }
 
-// func (d *Digest) Marshal() ([]byte, error) {
-//   return json.Marshal(d), nil
-// }
-//
-// func (d *Digest) Unmarshal()  {
-//
-// }
+// Unmarshal takes a viper config file and unmarshals the data into the
+// DigestSchema.
+func (d *DigestSchema) Unmarshal(cfg *viper.Viper) error {
+  err = cfg.Unmarshal(d)
+  if err != nil {
+  	return err
+  }
+}
+
+// NewDigest creates a new, empty digest.
+func NewDigest() *Digest {
+  return &Digest{}
+}
