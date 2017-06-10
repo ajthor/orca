@@ -19,18 +19,12 @@ func SetupCLIRootCmd(rootCmd *cobra.Command)  {
   buildCmd.Flags().StringP("version", "v", "", "Version to build.")
 
   rootCmd.AddCommand(shasumCmd)
-  // shasumCmd.Flags().StringSliceP("version", "v", []string{}, "Version(s) to create shasums for.")
+  shasumCmd.Flags().StringSliceP("version", "v", []string{}, "Version(s) to create shasums for.")
   // shasumCmd.Flags().StringP("out", "o", "", "Output file.")
   // shasumCmd.Flags().BoolP("force", "f", false, "Force download of all files.")
 
   // rootCmd.AddCommand(initCmd)
   // shasumCmd.Flags().StringP("path", "C", "", "Relative output path.")
-
-  rootCmd.AddCommand(testCmd)
-  testCmd.Flags().StringP("filter", "f", "", "Filter images based on given criteria. For example: -f name=alpine")
-  testCmd.Flags().StringP("image", "", "", "Image name to build.")
-  testCmd.Flags().StringP("manifest", "", "", "Path to manifest file.")
-  testCmd.Flags().StringP("version", "v", "", "Version to build.")
 }
 
 // GetNamesFromArgs returns the name from the arguments.
