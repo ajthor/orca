@@ -18,19 +18,6 @@
             "mirror": "http://github.com/user/repo",
             "file": "file-{{.Version}}.tar.gz"
           }
-        },
-        {
-          "name": "alpine",
-          "dockerfile": "Dockerfile",
-          "baseImage": "alpine:3.5",
-          "files": ["rootfs.tar.gz"],
-          "versions": [
-            "0.0.1", "0.0.2", "0.0.3"
-          ],
-          "remote": {
-            "mirror": "http://github.com/user/repo",
-            "file": "file-{{.Version}}-alpine.tar.gz"
-          }
         }
       ]
     }

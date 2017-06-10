@@ -1,7 +1,7 @@
 package config
 
 import (
-  "fmt"
+  "errors"
   "strings"
 
   "path/filepath"
@@ -9,32 +9,33 @@ import (
   "github.com/spf13/viper"
 )
 
-// Create a new configuration object.
-func New(p string) (*viper.Viper, error) {
+var (
+  ErrConfigNotSpecified = errors.New("Configuration file not specified.")
+)
+
+// New creates a new configuration object. It takes a string, the name of a
+// file which will be loaded as the configuration.
+func NewConfig(name string) (*viper.Viper, error) {
+  // Ensure the path variable is set.
+  if name == "" {
+    return nil, ErrConfigNotSpecified
+  }
+
   // Create a new viper config.
   cfg := viper.New()
 
-  // The name of the default configuration file, without extensions.
-  cfg.SetConfigName("orca")
-
-  // If a path is specified, we need to change the configuration name and add
-  // the new directory to the list of search paths.
-  if p != "" {
-    dir, base := filepath.Split(p)
-
-    // If the included path has a directory, returned by the `Split` function
-    // above, we include that directory in the list of directories we search
-    // for our file in.
-    if dir != "" {
-      cfg.AddConfigPath(dir)
-    }
-
-    // Trim the extension off of the base name.
-    base = strings.TrimSuffix(base, filepath.Ext(base))
-
-    // Change the config name.
-    cfg.SetConfigName(base)
+  // If the included path has a directory, we include that directory in the
+  // list of paths we search for our file in.
+  dir, base := filepath.Split(name)
+  if dir != "" {
+    cfg.AddConfigPath(dir)
   }
+
+  // Trim the extension off of the base name.
+  base = strings.TrimSuffix(base, filepath.Ext(base))
+
+  // Change the config name.
+  cfg.SetConfigName(base)
 
   // Set default paths to look for the orca config file.
   cfg.AddConfigPath("/")
@@ -44,18 +45,17 @@ func New(p string) (*viper.Viper, error) {
   // Actually read in the configuration.
   err := cfg.ReadInConfig()
   if err != nil {
-    return cfg, err
+    return nil, err
   }
 
   return cfg, nil
 }
 
-func HasRequired(cfg *viper.Viper, requiredFields []string) error {
-  for _, v := range requiredFields {
+func HasRequired(cfg *viper.Viper, fields []string) bool {
+  for _, v := range fields {
     if set := cfg.IsSet(v); !set {
-      return fmt.Errorf("Required field: %s", v)
+      return false
     }
   }
-
-  return nil
+  return true
 }

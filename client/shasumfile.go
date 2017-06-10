@@ -26,6 +26,13 @@ type ShasumFile struct {
 //
 // Returns a pointer to a ShasumFile.
 func CreateShasumFile(name string) (*ShasumFile, error) {
+  // Make sure the directory exists.
+  err := mkdir(filepath.Dir(name))
+  if err != nil {
+    return nil, err
+  }
+
+  // Create the file.
   file, err := os.OpenFile(name, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
   if err != nil {
     return nil, err
@@ -43,6 +50,7 @@ func CreateShasumFile(name string) (*ShasumFile, error) {
 //
 // Returns a pointer to a ShasumFile.
 func OpenShasumFile(name string) (*ShasumFile, error) {
+  // Open the file.
   file, err := os.OpenFile(name, os.O_RDWR, 0)
   if err != nil {
     return nil, err
@@ -52,6 +60,28 @@ func OpenShasumFile(name string) (*ShasumFile, error) {
     file: file,
     name: name,
   }, nil
+}
+
+// FetchShasumFile fetches the SHASUM256.txt file at the specified url.
+// The URL should point to a valid shasum file. For example:
+// http://somewhere.com/SHASUM256.txt
+//
+// Returns a *ShasumFile. If the file does not exist or cannot be downloaded,
+// it returns an error and a nil pointer for the *ShasumFile.
+func FetchShasumFile(url string) (*ShasumFile, error) {
+  dir := tempdir("", "fetch")
+
+  destPath := filepath.Join(dir, "SHASUM256.txt")
+  dest := mustCreate(destPath)
+  defer dest.Close()
+
+  // Download the file to the temporary directory.
+  err := downloadFile(url, dest)
+  if err != nil {
+    return nil, err
+  }
+
+  return OpenShasumFile(destPath)
 }
 
 // Read reads in all of the hashes in the shasum file.
@@ -158,28 +188,24 @@ func (s *ShasumFile) Merge(hashes []*Shasum) error {
   return s.Write(hashes)
 }
 
+// Find returns the hash matching the file name provided as an argument from
+// the shasum file.
+//
+// If no matching hash is found, the function returns nil.
+func (s *ShasumFile) Find(match string) *Shasum {
+  // Get all hashes from the shasum file.
+  fileHashes, _ := s.Read()
+
+  for _, h := range fileHashes {
+    if contains := strings.Contains(h.String(), match); contains {
+      return h
+    }
+  }
+
+  return nil
+}
+
 // Close closes the ShasumFile when we are done with it.
 func (s *ShasumFile) Close() error {
   return s.file.Close()
-}
-
-// FetchShasumFile fetches the SHASUM256.txt file at the specified url.
-// The URL should point to a valid shasum file. For example:
-// http://somewhere.com/SHASUM256.txt
-//
-// Returns a *ShasumFile
-func (c *Client) FetchShasumFile(url string) (*ShasumFile, error) {
-  dir := tempdir("", "fetch")
-
-  destPath := filepath.Join(dir, "SHASUM256.txt")
-  dest := mustCreate(destPath)
-  defer dest.Close()
-
-  // Download the file to the temporary directory.
-  err := downloadFile(url, dest)
-  if err != nil {
-    return nil, err
-  }
-
-  return OpenShasumFile(destPath)
 }

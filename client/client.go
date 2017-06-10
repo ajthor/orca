@@ -7,7 +7,7 @@ import (
   "io/ioutil"
   "path/filepath"
 
-  client "github.com/docker/docker/client"
+  dockerClient "github.com/docker/docker/client"
   log "github.com/gorobot/robologger"
 )
 
@@ -19,7 +19,7 @@ type Client struct {
   ClientOptions
 
   // Docker client. The Orca client relies heavily on the Docker client.
-  client *client.Client
+  dockerClient *dockerClient.Client
 }
 
 type ClientOptions struct {
@@ -29,19 +29,25 @@ type ClientOptions struct {
   Directory *string
 }
 
-func NewClient(client *client.Client, opts *ClientOptions) *Client {
-  log.Info("Initializing Orca client.")
+// NewClient creates a new Orca client. It takes a Docker client and a
+// ClientOptions struct as arguments. The Docker client is required for any
+// functions that interact with Docker directly.
+func NewClient(dockerClient *dockerClient.Client, opts *ClientOptions) *Client {
   if opts == nil {
     log.Fatal(ErrClientOptionsNotDefined)
   }
 
   cli := &Client{
     ClientOptions: *opts,
-    client: client,
+    dockerClient: dockerClient,
   }
 
   // Here, we check default values and update the client to handle if any
   // defaults are not set.
+  if err := cli.checkDockerClient(); err != nil {
+    log.Fatal(err)
+  }
+
   if err := cli.checkDirectory(); err != nil {
     log.Fatal(err)
   }
@@ -54,29 +60,56 @@ func (c *Client) Close() error {
   return nil
 }
 
+func (c *Client) checkDockerClient() error {
+  if c.dockerClient != nil {
+    return nil
+  }
+
+  // Set up the Docker client. We use default, expected values in order to
+  // set up the client.
+  host := "unix:///var/run/docker.sock"
+  version := "v1.29"
+
+  headers := map[string]string{
+    "User-Agent": "engine-api-cli-1.0",
+  }
+
+  // Create a new connection to the Docker server.
+  cli, err := dockerClient.NewClient(host, version, nil, headers)
+  if err != nil {
+    return err
+  }
+
+  c.dockerClient = cli
+
+  return nil
+}
+
 // checkDirectory ensures that the Directory property passed to the client
 // exists and is set. If it is not set, the directory is changed to the current
 // working directory.
 //
 // Returns an error if the directory does not exist and cannot be created.
 func (c *Client) checkDirectory() error {
+  // If the file does not exist, we create it, along with any parent
+  // directories that are required.
+  // err := mkdir(*c.Directory)
+  // if err != nil {
+  //   return err
+  // }
+
+  if c.Directory != nil {
+    return nil
+  }
   // If there is no directory supplied to the client, we default to the current
   // working directory.
-  if c.Directory == nil {
-    // If the file does not exist, we create it, along with any parent
-    // directories that are required.
-    dir, err := os.Getwd()
-    if err != nil {
-      return err
-    }
 
-    c.Directory = &dir
-  }
-
-  err := mkdir(*c.Directory)
+  dir, err := os.Getwd()
   if err != nil {
     return err
   }
+
+  c.Directory = &dir
 
   return nil
 }
@@ -123,6 +156,7 @@ func tempdir(dir, prefix string) string {
   }
 
   log.Debugf("---> %s", dir)
+  
   return dir
 }
 

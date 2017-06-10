@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "digests": [
     {
-      "tag": "repo/image:tag",
+      "tags": ["repo/image:tag"],
       "commit": "e692418e",
       "dockerfile": "sha256:e692418e...",
       "hash": "sha256:e692418e...",

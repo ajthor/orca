@@ -4,7 +4,7 @@ import (
   "context"
   "os"
 
-  "github.com/gorobot-library/orca/manifest"
+  // "github.com/gorobot-library/orca/manifest"
 
   "github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/jsonmessage"
@@ -17,14 +17,8 @@ import (
 //
 // It is important to set the Tags variable inside the ImageBuildOptions passed
 // to the function. The function does not generate them for you, but there is a
-// method in the `manifest.go` file to assist in generating the tags.
-func (c *Client) ImageBuild(ctx context.Context, m manifest.Manifest, options types.ImageBuildOptions) error {
-
-  // Create the build context.
-  buildContext := NewContext(m, &ContextOptions{
-    Directory: c.Directory,
-  })
-
+// method in the `manifest` package to assist in generating the tags.
+func (c *Client) ImageBuild(ctx context.Context, buildContext *Context, options types.ImageBuildOptions) error {
   // Create the build context.
   tarFile, err := buildContext.Tar()
 	if err != nil {
@@ -36,7 +30,7 @@ func (c *Client) ImageBuild(ctx context.Context, m manifest.Manifest, options ty
 
   // Once we have the build context, we can go through the process of building
   // the image. This is handles by the `ImageBuild` function.
-  resp, err := c.client.ImageBuild(ctx, tarFile, options)
+  resp, err := c.dockerClient.ImageBuild(ctx, tarFile, options)
   if err != nil {
 		return err
 	}

@@ -43,7 +43,7 @@ func (c *Client) GenerateShasums(files, urls []string) ([]*Shasum, error) {
     }
 
     // Create a shasum for the downloaded file.
-    hashes[i], err = NewShasum(dlfile)
+    hashes[i], err = GenerateShasum(dlfile)
     if err != nil {
       return hashes, err
     }
@@ -71,17 +71,17 @@ func NewShasum(s string) (*Shasum, error) {
     return nil, ErrInvalidHash
   }
 
-  absPath, _ := filepath.Abs(s)
-
-  // If the string is a file and it exists, we generate a hash for the file.
-  if _, err := os.Stat(absPath); os.IsExist(err) {
-    sum, err := GenerateShasum(s)
-    if err != nil {
-      return nil, err
-    }
-
-    return sum, nil
-  }
+  // absPath, _ := filepath.Abs(s)
+  //
+  // // If the string is a file and it exists, we generate a hash for the file.
+  // if _, err := os.Stat(absPath); os.IsExist(err) {
+  //   sum, err := GenerateShasum(s)
+  //   if err != nil {
+  //     return nil, err
+  //   }
+  //
+  //   return sum, nil
+  // }
 
   return &Shasum{
     raw: s,
@@ -91,7 +91,9 @@ func NewShasum(s string) (*Shasum, error) {
 // GenerateShasum reads in the file specified as a parameter and returns a
 // pointer to a new Shasum.
 func GenerateShasum(file string) (*Shasum, error) {
-  f := mustOpen(file)
+  absPath, _ := filepath.Abs(file)
+
+  f := mustOpen(absPath)
   defer f.Close()
 
   // CreateShasum the hash.
@@ -177,7 +179,7 @@ func (dl *fileDownloader) Close() error {
 
 // downloadFile fetches the file from `url` and saves it to the file specified by `name`.
 func downloadFile(url string, file *os.File) error {
-  m := log.Infof("Downloading %s...", url)
+  log.Infof("Downloading %s...", url)
 
   // Get the file from the download URL.
   r, err := http.Get(url)
@@ -209,7 +211,6 @@ func downloadFile(url string, file *os.File) error {
   }
 
   Update(100, "done")
-  log.Status(log.OK, m)
 
   return nil
 }

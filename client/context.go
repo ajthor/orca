@@ -11,6 +11,7 @@ import (
   "github.com/gorobot-library/orca/manifest"
 
   "github.com/docker/docker/pkg/archive"
+  log "github.com/gorobot/robologger"
 )
 
 type Context struct {
@@ -33,20 +34,20 @@ type ContextOptions struct {
 
   // Data holds any variables which are available to the templates when we
   // build the context.
-  Data interface{}
+  Data map[string]interface{}
 }
 
-func NewContext(m manifest.Manifest, opts *ContextOptions) *Context {
+// NewContext creates a new context struct that is used to copy files into a
+// temporary directory and tarred, to be passed to the ImageBuild function of
+// the Docker client.
+//
+// In the ContextOptions, it is possible to define a map which is used in
+// the template of any files that are copied to the context directory.
+func NewContext(img *manifest.Image, opts *ContextOptions) *Context {
   ctx := &Context{
     ContextOptions: *opts,
-    Dockerfile: m.Dockerfile,
-    Files: m.Files,
-  }
-
-  // If no data is passed, we default to using the manifest as the data that is
-  // available to the template.
-  if opts.Data == nil {
-    ctx.Data = m
+    Dockerfile: img.Dockerfile,
+    Files: img.Files,
   }
 
   return ctx
@@ -97,7 +98,7 @@ func (c *Context) Tar() (io.ReadCloser, error) {
 //
 // Returns an error if templating fails.
 func (c *Context) AddFile(file string) error {
-  // Open the source file.
+  // Get the source file directory.
   srcPath, _ := filepath.Abs(file)
 
   // Create a template using the source file.
@@ -111,13 +112,15 @@ func (c *Context) AddFile(file string) error {
   dest := mustCreate(destPath)
   defer dest.Close()
 
-  // The variables that are currently set in the c.Data object are used to
+  // The variables that are currently set in the c.Data map are used to
   // template the Dockerfile. Any options that are passed during the creation
   // of the Context are available during templating.
   err = t.Execute(dest, c.Data)
   if err != nil {
     return err
   }
+
+  log.Debugf("---> %s", destPath)
 
   return nil
 }

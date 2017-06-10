@@ -1,24 +1,49 @@
 package cli
 
 import (
+  "strings"
+
   "github.com/spf13/cobra"
 )
 
 func SetupCLIRootCmd(rootCmd *cobra.Command)  {
-  // Make sure that if the user attaches the '-h' flag, that we will always
-  // display the help text.
-  rootCmd.PersistentFlags().BoolP("help", "h", false, "Print usage.")
+  rootCmd.InitDefaultHelpCmd()
+  rootCmd.InitDefaultHelpFlag()
+  // rootCmd.PersistentFlags().MarkHidden("help")
 
-  // flags := cmd.Flags()
-	// flags.BoolVarP(&opts.version, "version", "v", false, "Print version information and quit")
+  rootCmd.AddCommand(buildCmd)
+  buildCmd.Flags().StringP("manifest", "", "", "Path to manifest file.")
+  buildCmd.Flags().StringP("image", "", "", "Name of image to build.")
+  buildCmd.Flags().String("sha-file", "", "Path to shasum file.")
+  buildCmd.Flags().StringSliceP("tag", "t", []string{}, "Tag(s) for build.")
+  buildCmd.Flags().StringP("version", "v", "", "Version to build.")
 
-  addRootCommands(rootCmd)
+  rootCmd.AddCommand(shasumCmd)
+  // shasumCmd.Flags().StringSliceP("version", "v", []string{}, "Version(s) to create shasums for.")
+  // shasumCmd.Flags().StringP("out", "o", "", "Output file.")
+  // shasumCmd.Flags().BoolP("force", "f", false, "Force download of all files.")
+
+  // rootCmd.AddCommand(initCmd)
+  // shasumCmd.Flags().StringP("path", "C", "", "Relative output path.")
+
+  rootCmd.AddCommand(testCmd)
+  testCmd.Flags().StringP("filter", "f", "", "Filter images based on given criteria. For example: -f name=alpine")
+  testCmd.Flags().StringP("image", "", "", "Image name to build.")
+  testCmd.Flags().StringP("manifest", "", "", "Path to manifest file.")
+  testCmd.Flags().StringP("version", "v", "", "Version to build.")
 }
 
-func addRootCommands(rootCmd *cobra.Command)  {
-  // Add all commands to the root command. Sub-commands (if any) will be stored
-  // in the respective files.
-  rootCmd.AddCommand(buildCmd)
-  rootCmd.AddCommand(shasumCmd)
-  rootCmd.AddCommand(initCmd)
+// GetNamesFromArgs returns the name from the arguments.
+func GetNamesFromArgs(cmd *cobra.Command, args []string) (string, string) {
+  var manifest, image string
+  manifest = args[0]
+  image, _ = cmd.Flags().GetString("image")
+
+  if contains := strings.Contains(manifest, "/"); contains {
+    str := strings.Split(manifest, "/")
+    manifest = str[0]
+    image = str[1]
+  }
+
+  return manifest, image
 }

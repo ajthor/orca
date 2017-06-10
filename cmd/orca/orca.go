@@ -9,11 +9,11 @@ import (
 
 func newCLICommand() *cobra.Command {
   // Initialize the "root command".
-  // By default, simply running the `orca` command will not perform an action.
+  // By default, running the `orca` command will display the usage message.
   cmd := &cobra.Command{
       Use:   "orca",
-      Short: "Orca is a simple Docker image build tool.",
-      Long:  `Orca is a simple Docker image build tool.`,
+      Short: "A simple Docker image build tool.",
+      Long:  rootCmdDesc,
     }
 
   // Perform initialization steps, such as attaching commands to the root
@@ -30,3 +30,15 @@ func main() {
 		log.Fatal(err)
 	}
 }
+
+// Command description for help message.
+var rootCmdDesc = `Orca 0.0.1
+A simple image build tool.
+
+Orca is a Docker image build tool that uses templates to create the build
+context. It provides tools for building Docker images and generating shasums.
+
+Orca is designed to be run either form the command line or inside a Docker
+container. For example:
+
+$ docker run -it --rm -v "$PWD:/" orca:0.0.1 <command>`
