@@ -2,9 +2,8 @@ package client
 
 import (
   "io"
-  // "os"
+  "os"
 
-  // "io/ioutil"
   "path/filepath"
   "text/template"
 
@@ -68,16 +67,20 @@ func (c *Context) Tar() (io.ReadCloser, error) {
   }
 
   // Template the Dockerfile into the temporary directory.
-  err := c.AddFile(c.Dockerfile)
+  err := c.TemplateFile(c.Dockerfile)
   if err != nil {
     return nil, err
   }
 
   // Copy in the include files.
   for _, file := range c.Files {
-    err := c.AddFile(file)
+    err := c.TemplateFile(file)
     if err != nil {
-      return nil, err
+      // Try copying the file.
+      err := c.CopyFile(file)
+      if err != nil {
+        return nil, err
+      }
     }
   }
 
@@ -85,7 +88,7 @@ func (c *Context) Tar() (io.ReadCloser, error) {
   return archive.Tar(*c.contextDirectory, archive.Gzip)
 }
 
-// AddFile templates the file from the source directory into the context
+// TemplateFile templates the file from the source directory into the context
 // directory.
 //
 // The Dockerfile in the current directory likely contains golang templating
@@ -97,8 +100,8 @@ func (c *Context) Tar() (io.ReadCloser, error) {
 // templating feature is to modify the Dockerfile.
 //
 // Returns an error if templating fails.
-func (c *Context) AddFile(file string) error {
-  // Get the source file directory.
+func (c *Context) TemplateFile(file string) error {
+  // Get the source file path.
   srcPath, _ := filepath.Abs(file)
 
   // Create a template using the source file.
@@ -121,6 +124,44 @@ func (c *Context) AddFile(file string) error {
   }
 
   log.Debugf("---> %s", destPath)
+
+  return nil
+}
+
+// CopyFile copies the file from the source directory into the context
+// directory.
+//
+// If the templating process fails for whatever reason, we copy the file as-is,
+// to ensure that it is present in the context directory.
+//
+// Returns an error if copying fails.
+func (c *Context) CopyFile(file string) error {
+  // Get the source file path.
+  srcPath, _ := filepath.Abs(file)
+
+  // Open the source file for copying.
+  src, err := os.Open(srcPath)
+  if err != nil {
+    return err
+  }
+  defer src.Close()
+
+  // Create a file to copy into.
+  destPath := filepath.Join(*c.Directory, file)
+  dest, err := os.Create(destPath)
+  if err != nil {
+    return err
+  }
+  defer dest.Close()
+
+  // Copy the file contents.
+  if _, err = io.Copy(dest, src); err != nil {
+    return err
+  }
+
+  if err = dest.Sync(); err != nil {
+    return err
+  }
 
   return nil
 }

@@ -98,7 +98,7 @@ func GetImage(name string, m *manifest.Manifest) (*manifest.Image, error) {
   msg := log.Info("Loading image...")
 
   img := m.Get(name)
-  if m == nil {
+  if img == nil {
     log.Status(log.ERR, msg)
     return nil, ErrImageNotFound
   }
