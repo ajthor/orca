@@ -28,6 +28,9 @@ func (c *Client) ImageBuild(ctx context.Context, buildContext *Context, options 
   // Make sure to close the tarfile when we're done.
   defer tarFile.Close()
 
+  // Ensure that NoCache is set to true in the options.
+  options.NoCache = true
+
   // Once we have the build context, we can go through the process of building
   // the image. This is handles by the `ImageBuild` function.
   resp, err := c.dockerClient.ImageBuild(ctx, tarFile, options)

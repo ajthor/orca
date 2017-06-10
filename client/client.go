@@ -1,8 +1,10 @@
 package client
 
 import (
+  "bufio"
   "errors"
   "os"
+  "strings"
 
   "io/ioutil"
   "path/filepath"
@@ -12,7 +14,7 @@ import (
 )
 
 var (
-  ErrClientOptionsNotDefined = errors.New("ClientOptions is not defined.")
+  ErrOptionsNotDefined = errors.New("Options is not defined.")
 )
 
 type Client struct {
@@ -34,7 +36,7 @@ type ClientOptions struct {
 // functions that interact with Docker directly.
 func NewClient(dockerClient *dockerClient.Client, opts *ClientOptions) *Client {
   if opts == nil {
-    log.Fatal(ErrClientOptionsNotDefined)
+    log.Fatal(ErrOptionsNotDefined)
   }
 
   cli := &Client{
@@ -52,11 +54,16 @@ func NewClient(dockerClient *dockerClient.Client, opts *ClientOptions) *Client {
     log.Fatal(err)
   }
 
+  if err := cli.checkCgroup(); err != nil {
+    log.Fatal(err)
+  }
+
   return cli
 }
 
 // Close performs steps necessary to close the client.
 func (c *Client) Close() error {
+  c.dockerClient.Close()
   return nil
 }
 
@@ -101,15 +108,37 @@ func (c *Client) checkDirectory() error {
   if c.Directory != nil {
     return nil
   }
+
   // If there is no directory supplied to the client, we default to the current
   // working directory.
-
   dir, err := os.Getwd()
   if err != nil {
     return err
   }
 
   c.Directory = &dir
+
+  return nil
+}
+
+// checkCgroup attempts to see whether or not the current container is running
+// inside a docker container. If it is, it sets the directory of the client to
+// the default volume within the running container, which is "/data"
+func (c *Client) checkCgroup() error {
+  cgroup := mustOpen("/proc/self/cgroup")
+  scanner := bufio.NewScanner(cgroup)
+  for scanner.Scan() {
+    if contains := strings.Contains("docker", scanner.Text()); contains {
+      newDir := filepath.Join("/data", *c.Directory)
+      c.Directory = &newDir
+      break
+    }
+  }
+
+  // Check for errors in the scan.
+  if err := scanner.Err(); err != nil {
+    return err
+  }
 
   return nil
 }
@@ -156,7 +185,7 @@ func tempdir(dir, prefix string) string {
   }
 
   log.Debugf("---> %s", dir)
-  
+
   return dir
 }
 

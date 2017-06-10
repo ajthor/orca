@@ -81,5 +81,7 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 # Copy the binary.
 COPY --from=builder /go/src/github.com/gorobot-library/orca/orca /
 
+VOLUME /data
+
 # Run the binary.
 ENTRYPOINT ["/orca"]

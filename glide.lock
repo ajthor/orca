@@ -1,5 +1,5 @@
-hash: 3dfdf0206cef3ea2927b5621796c11cda31769d749619905266250fad6caa6b0
-updated: 2017-06-03T19:13:52.502525879Z
+hash: 941f8a0d5151ed4c2471f42df9e2da9caf1410d07a11314aa203e516db8ac096
+updated: 2017-06-10T06:37:01.317224633Z
 imports:
 - name: github.com/Azure/go-ansiterm
   version: fa152c58bc15761d0200cb75fe958b89a9d4888e
@@ -84,9 +84,9 @@ imports:
 - name: github.com/Nvveen/Gotty
   version: cd527374f1e5bff4938207604a14f2e38a9cf512
 - name: github.com/opencontainers/go-digest
-  version: eaa60544f31ccf3b0653b1a118b76d33418ff41b
+  version: 279bed98673dd5bef374d3b6e4b09e2af76183bf
 - name: github.com/opencontainers/runc
-  version: 37234959723df2627fb3a22f174f01378f37fb7e
+  version: ea35825a6350511ab93fe24e69c0723d6728616d
   subpackages:
   - libcontainer/system
   - libcontainer/user
@@ -97,7 +97,7 @@ imports:
 - name: github.com/pkg/errors
   version: c605e284fe17294bda444b34710735b29d1a9d90
 - name: github.com/Sirupsen/logrus
-  version: 5e5dc898656f695e2a086b8e12559febbfc01562
+  version: 85b1699d505667d13f8ac4478c1debbf85d6c5de
 - name: github.com/spf13/afero
   version: 9be650865eab0c12963d8753212f4f9c66cdcf12
   subpackages:
@@ -105,26 +105,26 @@ imports:
 - name: github.com/spf13/cast
   version: acbeb36b902d72a7a4c18e8f3241075e7ab763e4
 - name: github.com/spf13/cobra
-  version: 8d4ce3549a0bf0e3569df3aae7423b7743cd05a9
+  version: d7cfb134748502f60bc1797cd26fcc3e4eb4b927
 - name: github.com/spf13/jwalterweatherman
   version: 0efa5202c04663c757d84f90f5219c1250baf94f
 - name: github.com/spf13/pflag
   version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
 - name: github.com/spf13/viper
-  version: 0967fc9aceab2ce9da34061253ac10fb99bba5b2
+  version: a1ecfa6a20bd4ef9e9caded262ee1b1b26847675
 - name: golang.org/x/net
-  version: e4fa1c5465ad6111f206fc92186b8c83d64adbe1
+  version: 1a68b1313cf4ad7778376e82641197b60c02f65c
   subpackages:
   - context
   - context/ctxhttp
   - proxy
 - name: golang.org/x/sys
-  version: b90f89a1e7a9c1f6b918820b3daa7f08488c8594
+  version: 0b25a408a50076fbbcae6b7ac0ea5fbb0b085e79
   subpackages:
   - unix
   - windows
 - name: golang.org/x/text
-  version: ccbd3f7822129ff389f8ca4858a9b9d4d910531c
+  version: 210eee5cf7323015d097341bcf7166130d001cd8
   subpackages:
   - transform
   - unicode/norm

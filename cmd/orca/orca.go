@@ -41,4 +41,4 @@ context. It provides tools for building Docker images and generating shasums.
 Orca is designed to be run either form the command line or inside a Docker
 container. For example:
 
-$ docker run -it --rm -v "$PWD:/" orca:0.0.1 <command>`
+$ docker run -it --rm -v "$PWD:/data" orca:0.0.1 <command>`

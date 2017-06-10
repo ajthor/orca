@@ -43,6 +43,10 @@ type ContextOptions struct {
 // In the ContextOptions, it is possible to define a map which is used in
 // the template of any files that are copied to the context directory.
 func NewContext(img *manifest.Image, opts *ContextOptions) *Context {
+  if opts == nil {
+    log.Fatal(ErrOptionsNotDefined)
+  }
+  
   ctx := &Context{
     ContextOptions: *opts,
     Dockerfile: img.Dockerfile,
@@ -143,7 +147,7 @@ func (c *Context) CopyFile(file string) error {
   defer src.Close()
 
   // Create a file to copy into.
-  destPath := filepath.Join(*c.Directory, file)
+  destPath := filepath.Join(*c.contextDirectory, file)
   dest, err := os.Create(destPath)
   if err != nil {
     return err
@@ -158,6 +162,8 @@ func (c *Context) CopyFile(file string) error {
   if err = dest.Sync(); err != nil {
     return err
   }
+
+  log.Debugf("---> %s", destPath)
 
   return nil
 }
