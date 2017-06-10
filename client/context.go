@@ -74,13 +74,9 @@ func (c *Context) Tar() (io.ReadCloser, error) {
 
   // Copy in the include files.
   for _, file := range c.Files {
-    err := c.TemplateFile(file)
+    err := c.CopyFile(file)
     if err != nil {
-      // Try copying the file.
-      err := c.CopyFile(file)
-      if err != nil {
-        return nil, err
-      }
+      return nil, err
     }
   }
 
