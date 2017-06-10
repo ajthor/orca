@@ -1,26 +1,38 @@
 {
-  "version": 1,
+  "schemaVersion": 1,
   "manifests": [
     {
       "name": "orca",
       "repo": "gorobot",
-      "registry": "127.0.0.1",
-      "dockerfile": "Dockerfile",
-      "baseImage": "scratch",
-      "files": [
-        "docker-entrypoint.sh"
-      ],
-      "remote": {
-        "mirror": "http://github.com",
-        "file": "file-{{.Version}}.tar.gz"
-      },
-      "versions": [
-        "0.0.1", "0.0.2", "0.0.3"
-      ],
-      "platform": {
-        "architecture": "armhf",
-        "os": "linux"
-      }
+      "registry": "127.0.0.1:5000",
+      "images": [
+        {
+          "name": "base",
+          "dockerfile": "Dockerfile",
+          "baseImage": "scratch",
+          "files": [],
+          "versions": [
+            "0.0.1", "0.0.2", "0.0.3"
+          ],
+          "remote": {
+            "mirror": "http://github.com/user/repo",
+            "file": "file-{{.Version}}.tar.gz"
+          }
+        },
+        {
+          "name": "alpine",
+          "dockerfile": "Dockerfile",
+          "baseImage": "alpine:3.5",
+          "files": ["rootfs.tar.gz"],
+          "versions": [
+            "0.0.1", "0.0.2", "0.0.3"
+          ],
+          "remote": {
+            "mirror": "http://github.com/user/repo",
+            "file": "file-{{.Version}}-alpine.tar.gz"
+          }
+        }
+      ]
     }
   ]
 }
